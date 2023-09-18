@@ -1,20 +1,89 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import Home from './Home';
 import ExamplePage from './ExamplePage';
+import LogIn from './Login';
+import Signup from './Signup';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from 'react';
 
 
-const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 export default function App() {
+  const [error, setError] = React.useState('');
+  const [isSignedIn, setIsSignedIn] = React.useState(false);
+  const [up, setUp] = React.useState(false);
+
+  const getLoggedInUserId = async () => {
+    try {
+      const value = await AsyncStorage.getItem('user');
+      if (value !== null) {
+        return value;
+      } else{
+        return null;
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  function update(){
+    setUp(!up);
+  }
+
+  useEffect(() => {
+    (async () => {
+      console.log(await getLoggedInUserId())
+      if(await getLoggedInUserId() === null){
+        setIsSignedIn(true);
+      } else{
+        setIsSignedIn(false);
+      }
+    })();
+  });
+
+  useEffect(() => {
+    setError('');
+  }, [up]);
+
+  function showError(message:string){
+    setError(message);
+  }
+
   return (
     <NavigationContainer>
-      <Tab.Navigator>
-        <Tab.Screen name="Home" component={Home} />
-        <Tab.Screen name="page1" component={ExamplePage} />
-      </Tab.Navigator>
+       {error ? (
+          <>
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+          </>
+        ): (
+          <>
+          </>
+        )}
+      
+        <Stack.Navigator>
+        {isSignedIn ? (
+          <>
+          <Stack.Screen name="Log In">
+            {(props) => <LogIn {...props} showError={showError} />}
+          </Stack.Screen>
+
+          <Stack.Screen name="Sign Up" component={Signup} />
+          </>
+        ) : (
+          <>
+          <Stack.Screen name="Home">
+            {(props) => <Home {...props} update={update} />}
+          </Stack.Screen>
+          <Stack.Screen name="Test" component={ExamplePage} />
+          </>
+        )}
+        </Stack.Navigator>
     </NavigationContainer>
   );
 }
@@ -25,5 +94,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  errorContainer: {
+    height: 100,
+    backgroundColor: 'red',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+
+  errorText: {
+    marginBottom: 15,
+    color: 'white',
+    fontSize: 20,
   },
 });
