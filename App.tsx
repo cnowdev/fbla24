@@ -16,7 +16,7 @@ export default function App() {
   const [error, setError] = React.useState('');
   const [isSignedIn, setIsSignedIn] = React.useState(false);
   const [up, setUp] = React.useState(false);
-
+  
   const getLoggedInUserId = async () => {
     try {
       const value = await AsyncStorage.getItem('user');
@@ -45,10 +45,6 @@ export default function App() {
     })();
   });
 
-  useEffect(() => {
-    setError('');
-  }, [up]);
-
   function showError(message:string){
     setError(message);
   }
@@ -73,6 +69,9 @@ export default function App() {
             {(props) => <LogIn {...props} showError={showError} />}
           </Stack.Screen>
 
+          <Stack.Screen name="Sign Up">
+            {(props) => <Signup {...props} showError={showError} />}
+          </Stack.Screen>
           <Stack.Screen name="Sign Up" component={Signup} options={{headerShown: true}}/>
           </>
         ) : (
