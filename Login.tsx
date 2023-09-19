@@ -1,12 +1,22 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View, TextInput, TouchableOpacity,} from 'react-native'
 import { collection, query, where, getDocs} from "firebase/firestore"; 
 import {db} from './firebase'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {User, Post} from './types/types'
+import { useFocusEffect } from '@react-navigation/native';
+
 
 export default function LogIn({ navigation, showError}:{navigation: any, showError: any}) {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
+
+    useFocusEffect(
+      React.useCallback(() => {
+        showError('');
+      }, [])
+    );
+  
 
     const logInUser = async (value:string) => {
         try {
@@ -19,11 +29,19 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
     const getUser = async (email:string) => {
         email = email.toLowerCase();
         const querySnapshot = await getDocs(query(collection(db, "users"), where("email", "==", email)));
-        var data:Array<any> = [];
+        let data:Array<User> = [];
         querySnapshot.forEach((doc) => {
-            data.push(doc.data());
+            let user: User = {
+              id: doc.id,
+              name: doc.data().name,
+              username: doc.data().username,
+              email: doc.data().email,
+              followers: doc.data().followers,
+              password: doc.data().password,
+              posts: doc.data().posts,
+            }
+            data.push(user);
         });
-        //console.log(data);
         return data;
     }
     
