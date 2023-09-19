@@ -6,7 +6,7 @@ export type Post = {
 
 
 export type User = {
-    id: string,
+    id?: string,
     email: string,
     followers: string[],
     name: string,
