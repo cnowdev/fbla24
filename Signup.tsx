@@ -9,11 +9,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function Signup({ navigation, showError}:{navigation: any, showError: any}){
   const [name, setName] = useState('')
   const [username, setUsername] = useState('')
+  const [usernameExists, setUsernameExists] = useState(false)
+  const [usernameValid, setUsernameValid] = useState(true)
   const [email, setEmail] = useState('')
+  const [emailExists, setEmailExists] = useState(false)
+  const [emailValid, setEmailValid] = useState(true)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
-  const [usernameExists, setUsernameExists] = useState(false)
-  const [emailExists, setEmailExists] = useState(false)
 
   useFocusEffect(
     React.useCallback(() => {
@@ -23,22 +25,38 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
 
   useEffect(() => { 
     (async () => {
-      var response = await getUserByUsername(username)
-      if(response[0]){
-        setUsernameExists(true)
-      } else{
-        setUsernameExists(false)
+      if(!/^[a-z0-9_]+$/.test(username)){
+        if(username){
+          setUsernameValid(false)
+          setUsernameExists(false)
+        }
+      }else{
+        setUsernameValid(true)
+        var response = await getUserByUsername(username)
+        if(response[0]){
+          setUsernameExists(true)
+        } else{
+          setUsernameExists(false)
+        }
       }
     })();
   }, [username]);
 
   useEffect(() => { 
     (async () => {
-      var response = await getUserByEmail(email)
-      if(response[0]){
-        setEmailExists(true)
-      } else{
-        setEmailExists(false)
+      if(!/^[A-Za-z0-9.]+@[A-Za-z0-9]+\.[A-Za-z]+$/.test(email)){
+        if(email){
+          setEmailValid(false)
+          setEmailExists(false)
+        }
+      } else {
+        setEmailValid(true)
+        var response = await getUserByEmail(email)
+        if(response[0]){
+          setEmailExists(true)
+        } else{
+          setEmailExists(false)
+        }
       }
     })();
   }, [email]);
@@ -133,6 +151,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           blurOnSubmit={false}
         />
       </View>
+      {!usernameValid && (<Text style={styles.errorText}>Usernames must be lowercase alphanumeric.</Text>)}
       {usernameExists && (<Text style={styles.errorText}>Username already exists.</Text>)}
       <View style={styles.inputView}>
         <TextInput
@@ -160,6 +179,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           ref={function(this:any, input) { this.thirdTextInput = input; }}
         />
       </View>
+      {!emailValid && (<Text style={styles.errorText}>Not a valid email.</Text>)}
       {emailExists && (<Text style={styles.errorText}>This email already has an account.</Text>)}
       <View style={styles.inputView}>
         <TextInput
@@ -189,7 +209,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           ref={function(this:any, input) { this.fifthTextInput = input; }}
         />
       </View>
-      {emailExists || usernameExists ? (
+      {emailExists || usernameExists || !username || !name || !email || !password || !confirm ? (
         <TouchableOpacity disabled={true} style={styles.disSignupBtn} onPress={handleSignupPress}>
           <Text style={styles.signupText}>Signup</Text>
         </TouchableOpacity>
