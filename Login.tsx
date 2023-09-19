@@ -1,8 +1,9 @@
 import React from 'react'
 import {SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View, TextInput, TouchableOpacity,} from 'react-native'
-import { collection, query, where, getDocs} from "firebase/firestore"; 
+import { collection, query, where, getDocs, setDoc, doc} from "firebase/firestore"; 
 import {db} from './firebase'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { User } from './types/types';
 
 export default function LogIn({ navigation, showError}:{navigation: any, showError: any}) {
     const [email, setEmail] = React.useState('');
@@ -16,6 +17,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
         }
     };
 
+
     const getUser = async (email:string) => {
         email = email.toLowerCase();
         const querySnapshot = await getDocs(query(collection(db, "users"), where("email", "==", email)));
@@ -27,55 +29,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
         return data;
     }
     
-    const styles = StyleSheet.create({
-        container: {
-          flex: 1,
-          backgroundColor: '#fff',
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        logo: {
-          fontWeight: 'bold',
-          fontSize: 50,
-          color: '#5f9ea0',
-          marginBottom: 40,
-        },
-        inputView: {
-          width: '80%',
-          backgroundColor: '#e0ffff',
-          borderRadius: 25,
-          height: 50,
-          marginBottom: 20,
-          justifyContent: 'center',
-          padding: 20,
-        },
-        inputText: {
-          height: 50,
-          color: 'black',
-        },
-        loginBtn: {
-          width: '80%',
-          backgroundColor: '#5f9ea0',
-          borderRadius: 25,
-          height: 50,
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: 40,
-          marginBottom: 10,
-        },
-        loginText: {
-          color: 'white',
-        },
-        forgot: {
-          color: '#5f9ea0',
-          fontSize: 12,
-        },
-        signup: {
-          color: '#5f9ea0',
-          fontSize: 12,
-          marginTop: 20,
-        },
-    });
+
 
     async function handleLogin() {
         if(!email || !password) {
@@ -133,3 +87,53 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    fontWeight: 'bold',
+    fontSize: 50,
+    color: '#5f9ea0',
+    marginBottom: 40,
+  },
+  inputView: {
+    width: '80%',
+    backgroundColor: '#e0ffff',
+    borderRadius: 25,
+    height: 50,
+    marginBottom: 20,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  inputText: {
+    height: 50,
+    color: 'black',
+  },
+  loginBtn: {
+    width: '80%',
+    backgroundColor: '#5f9ea0',
+    borderRadius: 25,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 40,
+    marginBottom: 10,
+  },
+  loginText: {
+    color: 'white',
+  },
+  forgot: {
+    color: '#5f9ea0',
+    fontSize: 12,
+  },
+  signup: {
+    color: '#5f9ea0',
+    fontSize: 12,
+    marginTop: 20,
+  },
+});

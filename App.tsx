@@ -69,15 +69,15 @@ export default function App() {
         <Stack.Navigator>
         {isSignedIn ? (
           <>
-          <Stack.Screen name="Log In">
+          <Stack.Screen name="Log In" options={{headerShown: false}}>
             {(props) => <LogIn {...props} showError={showError} />}
           </Stack.Screen>
 
-          <Stack.Screen name="Sign Up" component={Signup} />
+          <Stack.Screen name="Sign Up" component={Signup} options={{headerShown: true}}/>
           </>
         ) : (
           <>
-          <Stack.Screen name="Home">
+          <Stack.Screen name="Home" options={{headerShown: false}}>
             {(props) => <Home {...props} update={update} />}
           </Stack.Screen>
           <Stack.Screen name="Test" component={ExamplePage} />
