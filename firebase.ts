@@ -10,7 +10,7 @@ import { getFirestore } from "firebase/firestore";
 
 
 // Your web app's Firebase configuration
-
+console.log(projectId);
 const firebaseConfig = {
   apiKey: apiKey,
   authDomain: authDomain,

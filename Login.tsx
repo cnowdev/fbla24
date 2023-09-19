@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+
 import {SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform,} from 'react-native'
 import { collection, query, where, getDocs} from "firebase/firestore"; 
 import {db} from './firebase'
@@ -25,6 +26,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
           console.log(e)
         }
     };
+
 
     const getUser = async (email:string) => {
         email = email.toLowerCase();
