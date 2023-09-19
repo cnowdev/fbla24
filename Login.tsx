@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import {SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View, TextInput, TouchableOpacity,} from 'react-native'
+import {SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform,} from 'react-native'
 import { collection, query, where, getDocs} from "firebase/firestore"; 
 import {db} from './firebase'
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -48,8 +48,19 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
     const styles = StyleSheet.create({
         container: {
           flex: 1,
+          minWidth: '100%',
           backgroundColor: '#fff',
           alignItems: 'center',
+          justifyContent: 'center',
+        },
+        bcontainer: {
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        keyboardContainer: {
+          backgroundColor: '#fff',
+          alignItems: 'center',
+          minWidth: '100%',
           justifyContent: 'center',
         },
         logo: {
@@ -59,7 +70,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
           marginBottom: 40,
         },
         inputView: {
-          width: '80%',
+          minWidth: '80%',
           backgroundColor: '#e0ffff',
           borderRadius: 25,
           height: 50,
@@ -72,7 +83,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
           color: 'black',
         },
         loginBtn: {
-          width: '80%',
+          minWidth: '80%',
           backgroundColor: '#5f9ea0',
           borderRadius: 25,
           height: 50,
@@ -119,7 +130,13 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
 
     return (
         <View style={styles.container}>
+          <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+      style={styles.keyboardContainer}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : -100}>
+        <View style={styles.bcontainer}>
           <Text style={styles.logo}>My App</Text>
+        </View>
           <View style={styles.inputView}>
             <TextInput
               style={styles.inputText}
@@ -127,6 +144,8 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
               placeholderTextColor="#003f5c"
               value={email}
               onChangeText={(text) => setEmail(text)}
+              autoCorrect={false}
+              autoCapitalize="none"
             />
           </View>
           <View style={styles.inputView}>
@@ -137,17 +156,20 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
               secureTextEntry
               value={password}
               onChangeText={(text) => setPassword(text)}
+              autoCorrect={false}
+              autoCapitalize="none"
             />
           </View>
           <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
             <Text style={styles.loginText}>Login</Text>
           </TouchableOpacity>
+          </KeyboardAvoidingView>
           <TouchableOpacity onPress={() => navigation.navigate('Sign Up')}>
             <Text style={styles.forgot}>Forgot Password?</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Sign Up')}>
             <Text style={styles.signup}>Signup</Text>
           </TouchableOpacity>
-        </View>
+        </View>      
     );
 }

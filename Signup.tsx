@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { collection, query, where, getDocs, setDoc, doc, addDoc} from "firebase/firestore"; 
 import {db} from './firebase'
 import { User, Post } from './types/types';
@@ -83,10 +83,8 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
   }
 
   const addUser = async (user:User) => {
-    console.log((({ id, ...rest }) => rest)(user))
-
     const usersCollection = collection(db, 'users');
-    await addDoc(usersCollection, (({ id, ...rest }) => rest)(user));
+    await addDoc(usersCollection, user);
   }
 
   async function handleSignupPress(){
@@ -96,7 +94,6 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
       showError('Password and Confirm Password do not match.')
     } else{
       let user: User = {
-        id: username,
         name: name,
         username: username.toLowerCase(),
         email: email.toLowerCase(),
@@ -116,6 +113,9 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
   };
 
   return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+      style={styles.keyboardContainer}>
     <View style={styles.container}>
       <Text style={styles.logo}>My App</Text>
       <View style={styles.inputView}>
@@ -125,6 +125,8 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           placeholderTextColor="#003f5c"
           value = {username}
           onChangeText={(text)=>{setUsername(text)}}
+          autoCorrect={false}
+          autoCapitalize="none"
         />
       </View>
       {usernameExists && (<Text style={styles.errorText}>Username already exists.</Text>)}
@@ -135,6 +137,8 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           placeholderTextColor="#003f5c"
           value = {name}
           onChangeText={(text)=>{setName(text)}}
+          autoCorrect={false}
+          autoCapitalize="none"
         />
       </View>
       <View style={styles.inputView}>
@@ -144,6 +148,8 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           placeholderTextColor="#003f5c"
           value = {email}
           onChangeText={(text)=>{setEmail(text)}}
+          autoCorrect={false}
+          autoCapitalize="none"
         />
       </View>
       {emailExists && (<Text style={styles.errorText}>This email already has an account.</Text>)}
@@ -155,6 +161,8 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           secureTextEntry
           value = {password}
           onChangeText={(text)=>{setPassword(text)}}
+          autoCorrect={false}
+          autoCapitalize="none"
         />
       </View>
       <View style={styles.inputView}>
@@ -165,6 +173,8 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           secureTextEntry
           value = {confirm}
           onChangeText={(text)=>{setConfirm(text)}}
+          autoCorrect={false}
+          autoCapitalize="none"
         />
       </View>
       {emailExists || usernameExists ? (
@@ -177,14 +187,24 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
         </TouchableOpacity>
       )}
     </View>
+    </KeyboardAvoidingView>
+
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    minWidth: '100%',
     backgroundColor: '#fff',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  keyboardContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    minWidth: '100%',
     justifyContent: 'center',
   },
   logo: {
@@ -194,7 +214,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   inputView: {
-    width: '80%',
+    minWidth: '80%',
     backgroundColor: '#e0ffff',
     borderRadius: 25,
     height: 50,
@@ -207,25 +227,25 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   signupBtn: {
-    width: '80%',
+    minWidth: '80%',
     backgroundColor: '#5f9ea0',
     borderRadius: 25,
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 40,
-    marginBottom: 10,
+    marginTop: 30,
+    marginBottom: 5,
   },
 
   disSignupBtn: {
-    width: '80%',
+    minWidth: '80%',
     backgroundColor: 'gray',
     borderRadius: 25,
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 40,
-    marginBottom: 10,
+    marginTop: 30,
+    marginBottom: 5,
   },
   signupText: {
     color: 'white',
