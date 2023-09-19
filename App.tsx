@@ -72,7 +72,6 @@ export default function App() {
           <Stack.Screen name="Sign Up">
             {(props) => <Signup {...props} showError={showError} />}
           </Stack.Screen>
-          <Stack.Screen name="Sign Up" component={Signup} options={{headerShown: true}}/>
           </>
         ) : (
           <>
