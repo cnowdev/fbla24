@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 
-import {SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform,} from 'react-native'
+import {SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard,} from 'react-native'
 import { collection, query, where, getDocs} from "firebase/firestore"; 
 import {db} from './firebase'
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -129,13 +129,13 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
             }
         }
     }
-
     return (
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.container}>
           <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'position' : 'height'}
-      style={styles.keyboardContainer}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : -100}>
+      style={styles.keyboardContainer}>
+        
         <View style={styles.bcontainer}>
           <Text style={styles.logo}>My App</Text>
         </View>
@@ -148,6 +148,8 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
               onChangeText={(text) => setEmail(text)}
               autoCorrect={false}
               autoCapitalize="none"
+              onSubmitEditing={function(this:any) { this.secondTextInput.focus(); }}
+              blurOnSubmit={false}
             />
           </View>
           <View style={styles.inputView}>
@@ -160,6 +162,8 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
               onChangeText={(text) => setPassword(text)}
               autoCorrect={false}
               autoCapitalize="none"
+              onSubmitEditing={handleLogin}
+              ref={function(this:any, input) { this.secondTextInput = input; }}
             />
           </View>
           <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
@@ -172,6 +176,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
           <TouchableOpacity onPress={() => navigation.navigate('Sign Up')}>
             <Text style={styles.signup}>Signup</Text>
           </TouchableOpacity>
-        </View>      
+        </View>  
+        </TouchableWithoutFeedback>    
     );
 }

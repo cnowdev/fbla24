@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { collection, query, where, getDocs, setDoc, doc, addDoc} from "firebase/firestore"; 
 import {db} from './firebase'
 import { User, Post } from './types/types';
@@ -113,9 +113,11 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
   };
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'position' : 'height'}
-      style={styles.keyboardContainer}>
+      style={styles.keyboardContainer}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? -40 : 0}>
     <View style={styles.container}>
       <Text style={styles.logo}>My App</Text>
       <View style={styles.inputView}>
@@ -127,6 +129,8 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           onChangeText={(text)=>{setUsername(text)}}
           autoCorrect={false}
           autoCapitalize="none"
+          onSubmitEditing={function(this:any) { this.secondTextInput.focus(); }}
+          blurOnSubmit={false}
         />
       </View>
       {usernameExists && (<Text style={styles.errorText}>Username already exists.</Text>)}
@@ -139,6 +143,8 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           onChangeText={(text)=>{setName(text)}}
           autoCorrect={false}
           autoCapitalize="none"
+          onSubmitEditing={function(this:any) { this.thirdTextInput.focus(); }}
+          ref={function(this:any, input) { this.secondTextInput = input; }}
         />
       </View>
       <View style={styles.inputView}>
@@ -150,6 +156,8 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           onChangeText={(text)=>{setEmail(text)}}
           autoCorrect={false}
           autoCapitalize="none"
+          onSubmitEditing={function(this:any) { this.fourthTextInput.focus(); }}
+          ref={function(this:any, input) { this.thirdTextInput = input; }}
         />
       </View>
       {emailExists && (<Text style={styles.errorText}>This email already has an account.</Text>)}
@@ -163,6 +171,8 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           onChangeText={(text)=>{setPassword(text)}}
           autoCorrect={false}
           autoCapitalize="none"
+          onSubmitEditing={function(this:any) { this.fifthTextInput.focus(); }}
+          ref={function(this:any, input) { this.fourthTextInput = input; }}
         />
       </View>
       <View style={styles.inputView}>
@@ -175,6 +185,8 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
           onChangeText={(text)=>{setConfirm(text)}}
           autoCorrect={false}
           autoCapitalize="none"
+          onSubmitEditing={handleSignupPress}
+          ref={function(this:any, input) { this.fifthTextInput = input; }}
         />
       </View>
       {emailExists || usernameExists ? (
@@ -188,7 +200,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
       )}
     </View>
     </KeyboardAvoidingView>
-
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -206,6 +218,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: '100%',
     justifyContent: 'center',
+    paddingBottom: 50,
   },
   logo: {
     fontWeight: 'bold',
