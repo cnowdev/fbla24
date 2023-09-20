@@ -41,72 +41,12 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
               followers: doc.data().followers,
               password: doc.data().password,
               posts: doc.data().posts,
+              about: doc.data().about,
             }
             data.push(user);
         });
         return data;
     }
-    
-    const styles = StyleSheet.create({
-        container: {
-          flex: 1,
-          minWidth: '100%',
-          backgroundColor: '#fff',
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        bcontainer: {
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-        keyboardContainer: {
-          backgroundColor: '#fff',
-          alignItems: 'center',
-          minWidth: '100%',
-          justifyContent: 'center',
-        },
-        logo: {
-          fontWeight: 'bold',
-          fontSize: 50,
-          color: '#5f9ea0',
-          marginBottom: 40,
-        },
-        inputView: {
-          minWidth: '80%',
-          backgroundColor: '#e0ffff',
-          borderRadius: 25,
-          height: 50,
-          marginBottom: 20,
-          justifyContent: 'center',
-          padding: 20,
-        },
-        inputText: {
-          height: 50,
-          color: 'black',
-        },
-        loginBtn: {
-          minWidth: '80%',
-          backgroundColor: '#5f9ea0',
-          borderRadius: 25,
-          height: 50,
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: 40,
-          marginBottom: 10,
-        },
-        loginText: {
-          color: 'white',
-        },
-        forgot: {
-          color: '#5f9ea0',
-          fontSize: 12,
-        },
-        signup: {
-          color: '#5f9ea0',
-          fontSize: 12,
-          marginTop: 20,
-        },
-    });
 
     async function handleLogin() {
         if(!email || !password) {
@@ -123,7 +63,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
                 showError('Email or password is incorrect')
                 return;
             } else{
-                logInUser(email);
+                logInUser(user[0].username);
                 //console.log(await AsyncStorage.getItem('user'));
                 showError('Logged in')
             }
@@ -178,5 +118,66 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
           </TouchableOpacity>
         </View>  
         </TouchableWithoutFeedback>    
-    );
+    );   
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    minWidth: '100%',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bcontainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  keyboardContainer: {
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    minWidth: '100%',
+    justifyContent: 'center',
+  },
+  logo: {
+    fontWeight: 'bold',
+    fontSize: 50,
+    color: '#5f9ea0',
+    marginBottom: 40,
+  },
+  inputView: {
+    minWidth: '80%',
+    backgroundColor: '#e0ffff',
+    borderRadius: 25,
+    height: 50,
+    marginBottom: 20,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  inputText: {
+    height: 50,
+    color: 'black',
+  },
+  loginBtn: {
+    minWidth: '80%',
+    backgroundColor: '#5f9ea0',
+    borderRadius: 25,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 40,
+    marginBottom: 10,
+  },
+  loginText: {
+    color: 'white',
+  },
+  forgot: {
+    color: '#5f9ea0',
+    fontSize: 12,
+  },
+  signup: {
+    color: '#5f9ea0',
+    fontSize: 12,
+    marginTop: 20,
+  },
+});

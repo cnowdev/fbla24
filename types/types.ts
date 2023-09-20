@@ -13,4 +13,5 @@ export type User = {
     password: string,
     posts: Post[],
     username: string,
+    about: string,
 }

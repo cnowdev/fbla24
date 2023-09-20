@@ -2,8 +2,9 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from './Home';
-import ExamplePage from './ExamplePage';
+import Profile from './Profile';
 import LogIn from './Login';
 import Signup from './Signup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,10 +12,11 @@ import React, { useEffect, useState } from 'react';
 
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [error, setError] = React.useState('');
-  const [isSignedIn, setIsSignedIn] = React.useState(false);
+  const [isSignedIn, setIsSignedIn] = React.useState('');
   const [up, setUp] = React.useState(false);
   
   const getLoggedInUserId = async () => {
@@ -36,11 +38,11 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      console.log(await getLoggedInUserId())
-      if(await getLoggedInUserId() === null){
-        setIsSignedIn(true);
+      let user = await getLoggedInUserId() || '';
+      if(user === null){
+        setIsSignedIn('');
       } else{
-        setIsSignedIn(false);
+        setIsSignedIn(user);
       }
     })();
   });
@@ -62,9 +64,8 @@ export default function App() {
           </>
         )}
       
-        <Stack.Navigator>
-        {isSignedIn ? (
-          <>
+        {!isSignedIn ? (
+          <Stack.Navigator>
           <Stack.Screen name="Log In" options={{headerShown: false}}>
             {(props) => <LogIn {...props} showError={showError} />}
           </Stack.Screen>
@@ -72,16 +73,18 @@ export default function App() {
           <Stack.Screen name="Sign Up">
             {(props) => <Signup {...props} showError={showError} />}
           </Stack.Screen>
-          </>
+          </Stack.Navigator>
         ) : (
-          <>
-          <Stack.Screen name="Home" options={{headerShown: false}}>
+          <Tab.Navigator>
+          <Tab.Screen name="Home" options={{headerShown: false}}>
             {(props) => <Home {...props} update={update} />}
-          </Stack.Screen>
-          <Stack.Screen name="Test" component={ExamplePage} />
-          </>
+          </Tab.Screen>
+
+          <Tab.Screen name="Profile">
+            {(props) => <Profile {...props} showError={setError} username={isSignedIn}/>}
+          </Tab.Screen>
+          </Tab.Navigator>
         )}
-        </Stack.Navigator>
     </NavigationContainer>
   );
 }
