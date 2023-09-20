@@ -75,6 +75,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
               followers: doc.data().followers,
               password: doc.data().password,
               posts: doc.data().posts,
+              about: doc.data().about,
             }
             data.push(user);
         });
@@ -94,6 +95,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
               followers: doc.data().followers,
               password: doc.data().password,
               posts: doc.data().posts,
+              about: doc.data().about,
             }
             data.push(user);
         });
@@ -118,6 +120,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
         followers: [],
         password: password,
         posts: [],
+        about: "",
       }
       addUser(user)
       try {
