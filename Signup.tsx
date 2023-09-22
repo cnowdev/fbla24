@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { collection, query, where, getDocs, setDoc, doc, addDoc} from "firebase/firestore"; 
 import {db} from './firebase'
-import { User, Post } from './types/types';
+import { User, Post, ProfileType, Activity } from './types/types';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -104,7 +104,19 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
 
   const addUser = async (user:User) => {
     const usersCollection = collection(db, 'users');
-    await addDoc(usersCollection, user);
+    const docRef = await addDoc(usersCollection, user);
+
+    const profileCollection = collection(db, 'profile');
+    let profile : ProfileType = {
+      creator_id: docRef.id,
+      classes: [],
+      achievements: [],
+      academic: [],
+      atheletic: [],
+      club: [],
+    } 
+    await addDoc(profileCollection, profile)
+
   }
 
   async function handleSignupPress(){

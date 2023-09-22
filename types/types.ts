@@ -15,3 +15,20 @@ export type User = {
     username: string,
     about: string,
 }
+
+export type Activity = {
+    title: string,
+    description: string,
+    startedAt: number, 
+    endedAt: number | null, 
+}
+
+export type ProfileType = {
+    id?: string,
+    creator_id: string,
+    classes: Array<string>,
+    achievements: Array<string>,
+    academic: Array<Activity>,
+    atheletic: Array<Activity>
+    club: Array<Activity>
+}
