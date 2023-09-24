@@ -102,7 +102,6 @@ export default function Profile({showError, username}:{showError: any, username:
   }
 
   function update(){
-    console.log(up)
     setUp(!up)
   }
 
@@ -114,7 +113,7 @@ export default function Profile({showError, username}:{showError: any, username:
             {(props) => <MainTab {...props} user={user} update={update}/>}
           </Tab.Screen>
           <Tab.Screen name="Academic">
-            {(props) => <AcademicTab {...props} academic={profile.academic ?? []} schedule={profile.classes ?? []}/>}
+            {(props) => <AcademicTab {...props} academic={profile.academic ?? []} schedule={profile.classes ?? []} creator_id={profile.creator_id ?? ''} update={update}/>}
           </Tab.Screen>
           <Tab.Screen name="Athletic" component={AthleticTab} />
           <Tab.Screen name="Clubs" component={ClubsTab} />
@@ -143,12 +142,12 @@ const MainTab = ({user, update}:{user:any, update: Function}) => {
   }, [isEditing])
 
   async function setFirestoreAbout(username:string, about:string){
+    setIsEditing(false);
     username = username.toLowerCase();
     const querySnapshot = await getDocs(query(collection(db, 'users'), where('username', '==', username)));
     const userDoc = querySnapshot.docs[0];
     const userDocRef = await doc(db,'users', userDoc.id);
     await updateDoc(userDocRef, { about: about });
-    setIsEditing(false);
     update();
   };
 
@@ -193,6 +192,7 @@ const MainTab = ({user, update}:{user:any, update: Function}) => {
           onChangeText={(text)=>{setAbout(text)}}
           multiline
           style={styles.aboutMeInp}
+          placeholder='About Me'
           />
         
         <View style={styles.btnContainer}>
@@ -230,26 +230,86 @@ const MainTab = ({user, update}:{user:any, update: Function}) => {
   );
 };
 
-const AcademicTab = ({academic, schedule}:{academic:Array<Activity> | [], schedule: Array<string> | []}) => {
+const AcademicTab = ({academic, schedule, creator_id, update}:{academic:Array<Activity> | [], schedule: Array<string> | [], creator_id:string, update:Function}) => {
+  const [isEditingSchedule, setIsEditingSchedule] = useState(false);
+  const [scheduleTxt, setScheduleTxt] = useState('');
+  const [up, setUp] = useState(false);
+
+  function internalUpdate(){
+    setUp(!up);
+  }
+
+  function deleteSchedule(index:number, creator_id:string){
+    return async () => {
+      internalUpdate();
+      var newSchedule = schedule;
+      newSchedule.splice(index, 1);
+      const querySnapshot = await getDocs(query(collection(db, 'profile'), where('creator_id', '==', creator_id)));
+      const profileDoc = querySnapshot.docs[0];
+      const profileDocRef = await doc(db,'profile', profileDoc.id);
+      await updateDoc(profileDocRef, { classes: newSchedule });
+      update();
+    }
+  }
+
+  function addSchedule(newClass:string, creator_id:string){
+    return async () => {
+      setScheduleTxt('');
+      var newSchedule:Array<string> = schedule;
+      newSchedule.push(newClass);
+      const querySnapshot = await getDocs(query(collection(db, 'profile'), where('creator_id', '==', creator_id)));
+      const profileDoc = querySnapshot.docs[0];
+      const profileDocRef = await doc(db,'profile', profileDoc.id);
+      await updateDoc(profileDocRef, { classes: newSchedule });
+      update();
+    }
+  }
+
   return (
     <ScrollView style={styles.scheduleContainer}>
       <View style={styles.scheduleSection}>
         <Text style={styles.sectionTitle}>Schedule</Text>
+        {!isEditingSchedule && (<Text onPress={()=>{setIsEditingSchedule(true)}} style={styles.editText}>edit</Text>)}
+        {isEditingSchedule && (<Text onPress={()=>{setIsEditingSchedule(false)}} style={styles.editText}>cancel</Text>)}
+
         <View>
-          <View style={styles.table}>
+          {!(schedule.length > 0) ? (
+            <Text style={styles.errorMsg}>Nothing to see here...</Text>
+          ) : (
+            <>
+            <View style={styles.table}>
             {/* Header row */}
             <View style={styles.tableRow}>
               <Text style={styles.tableHeaderCell}>Period</Text>
-              <Text style={styles.tableHeaderCell}>Time</Text>
+              <Text style={styles.tableHeaderCell}>Class</Text>
             </View>
             {/* Schedule rows */}
             {schedule.map((x, index) => (
               <View style={styles.tableRow} key={index}>
                 <Text style={styles.tableCell}>{`Period ${index + 1}`}</Text>
                 <Text style={styles.tableCell}>{x}</Text>
+
+                {isEditingSchedule && (
+                  <TouchableOpacity onPress={deleteSchedule(index, creator_id)} style={styles.dltBtn}>
+                    <Text style={styles.dltTxt}>X</Text>
+                  </TouchableOpacity>)
+                }
+
               </View>
             ))}
           </View>
+          </>
+          )}
+
+        {isEditingSchedule && (
+          <>
+          <TextInput onSubmitEditing={addSchedule(scheduleTxt, creator_id )} onChangeText={(text) => {setScheduleTxt(text)}} value={scheduleTxt} style={styles.scheduleInp} placeholder='New Class'/>
+          <TouchableOpacity onPress={addSchedule(scheduleTxt, creator_id )} style={styles.addBtn}>
+            <Text style={styles.addTxt}>+</Text>
+          </TouchableOpacity> 
+          </>)
+        }
+          
         </View>
       </View>
 
@@ -268,6 +328,8 @@ const AcademicTab = ({academic, schedule}:{academic:Array<Activity> | [], schedu
             <Text style={styles.cardDate}>End Date: {!x.endedAt ? ('?'):(new Date((x.endedAt || 0)*1000).toDateString())}</Text>
           </View>
         ))}
+
+        {academic.length == 0 && (<Text style={styles.errorMsg}>Nothing to see here...</Text>)}
       </View>
     </ScrollView>
   );
@@ -349,9 +411,10 @@ const styles = StyleSheet.create({
   editText: {
     fontSize: 16,
     color: '#5f9ea0',
-    marginBottom: 12,
+    marginBottom: 6,
   },
   aboutMeInp : {
+    marginTop: 28,
     width: 240,
     borderColor: '#5f9ea0',
     borderWidth: .25,
@@ -398,8 +461,8 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   table: {
-    marginTop: 16,
-    marginBottom: 16,
+    marginTop: 10,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: '#5f9ea0',
     borderRadius: 5,
@@ -413,7 +476,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     padding: 5,
     flex: 1,
-    textAlign: 'center',
     fontWeight: 'bold',
     backgroundColor: '#5f9ea0',
   },
@@ -442,4 +504,45 @@ const styles = StyleSheet.create({
   cardDate: {
     fontSize: 14,
   },
+
+  dltBtn: {
+    marginTop: 8,
+    marginRight: 5,
+    backgroundColor: 'red',
+    borderRadius: 20,
+    width: 20, // Adjust the width to your preference
+    height: 20, // Adjust the height to your preference
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dltTxt: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16, // Adjust the font size to your preference
+  },
+
+  addBtn: {
+    backgroundColor: 'green', // Adjust the background color to your preference
+    borderRadius: 5,
+    width: 350, // Adjust the width to your preference
+    height: 30, // Adjust the height to your preference
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  
+  addTxt: {
+    color: 'white', // Adjust the text color to your preference
+    fontWeight: 'bold',
+    fontSize: 16, // Adjust the font size to your preference
+  },
+
+  scheduleInp: {
+    marginBottom: 10,
+    width: 350,
+    height: 30,
+    borderColor: '#5f9ea0',
+    borderWidth: .75,
+    padding: 5,
+  }
 });

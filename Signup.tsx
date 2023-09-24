@@ -120,11 +120,21 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
   }
 
   async function handleSignupPress(){
+    var emailResp = await getUserByEmail(email)
+    var userResp = await getUserByUsername(username)
     if(!username || !name || !email ||!password||!confirm){
       showError('Please enter all fields.')
     } else if(password != confirm){
       showError('Password and Confirm Password do not match.')
-    } else{
+    } else if(!/^[A-Za-z0-9.]+@[A-Za-z0-9]+\.[A-Za-z]+$/.test(email)){
+      showError('Not a valid email.')
+    } else if(!/^[a-z0-9_]+$/.test(username)){
+      showError('Usernames must be lowercase alphanumeric.')
+    } else if(emailResp[0]){
+      showError('This email already has an account.')
+    } else if (userResp[0]){
+      showError('Username already exists.')
+    }else{
       let user: User = {
         name: name,
         username: username.toLowerCase(),
