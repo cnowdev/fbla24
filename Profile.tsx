@@ -230,86 +230,128 @@ const MainTab = ({user, update}:{user:any, update: Function}) => {
   );
 };
 
-const AcademicTab = ({academic, schedule, creator_id, update}:{academic:Array<Activity> | [], schedule: Array<string> | [], creator_id:string, update:Function}) => {
+const AcademicTab = ({ academic, schedule, creator_id, update }: { academic: Array<Activity> | [], schedule: Array<string> | [], creator_id: string, update: Function }) => {
   const [isEditingSchedule, setIsEditingSchedule] = useState(false);
+  const [editedSchedule, setEditedSchedule] = useState([...schedule]);
   const [scheduleTxt, setScheduleTxt] = useState('');
-  const [up, setUp] = useState(false);
+  
+  useEffect(() => {
+    setEditedSchedule([...schedule]);
+  }, [schedule]);
 
-  function internalUpdate(){
-    setUp(!up);
+  function toggleEditing() {
+    setIsEditingSchedule(!isEditingSchedule);
   }
 
-  function deleteSchedule(index:number, creator_id:string){
-    return async () => {
-      internalUpdate();
-      var newSchedule = schedule;
-      newSchedule.splice(index, 1);
+  function areArraysIdentical(arr1:Array<any>, arr2:Array<any>) {
+    if (arr1.length !== arr2.length) {
+      return false;
+    }
+  
+    for (let i = 0; i < arr1.length; i++) {
+      if (arr1[i] !== arr2[i]) {
+        return false;
+      }
+    }
+  
+    return true;
+  }
+
+  async function updateSchedule() {
+    toggleEditing();
+    if(!areArraysIdentical(editedSchedule, schedule)){
       const querySnapshot = await getDocs(query(collection(db, 'profile'), where('creator_id', '==', creator_id)));
       const profileDoc = querySnapshot.docs[0];
-      const profileDocRef = await doc(db,'profile', profileDoc.id);
-      await updateDoc(profileDocRef, { classes: newSchedule });
-      update();
+      const profileDocRef = doc(db, 'profile', profileDoc.id);
+      await updateDoc(profileDocRef, { classes: editedSchedule });
     }
+    update();
   }
 
-  function addSchedule(newClass:string, creator_id:string){
-    return async () => {
+  function addClass() {
+    if (scheduleTxt.trim() !== '') {
+      setEditedSchedule([...editedSchedule, scheduleTxt]);
       setScheduleTxt('');
-      var newSchedule:Array<string> = schedule;
-      newSchedule.push(newClass);
-      const querySnapshot = await getDocs(query(collection(db, 'profile'), where('creator_id', '==', creator_id)));
-      const profileDoc = querySnapshot.docs[0];
-      const profileDocRef = await doc(db,'profile', profileDoc.id);
-      await updateDoc(profileDocRef, { classes: newSchedule });
-      update();
     }
+  }
+
+  function removeClass(index: number) {
+    const newSchedule = [...editedSchedule];
+    newSchedule.splice(index, 1);
+    setEditedSchedule(newSchedule);
   }
 
   return (
     <ScrollView style={styles.scheduleContainer}>
       <View style={styles.scheduleSection}>
         <Text style={styles.sectionTitle}>Schedule</Text>
-        {!isEditingSchedule && (<Text onPress={()=>{setIsEditingSchedule(true)}} style={styles.editText}>edit</Text>)}
-        {isEditingSchedule && (<Text onPress={()=>{setIsEditingSchedule(false)}} style={styles.editText}>cancel</Text>)}
+        {!isEditingSchedule && (
+          <Text onPress={toggleEditing} style={styles.editText}>
+            Edit
+          </Text>
+        )}
+        {isEditingSchedule && (
+          <Text onPress={updateSchedule} style={styles.editText}>
+            Save
+          </Text>
+        )}
 
         <View>
-          {!(schedule.length > 0) ? (
+          {editedSchedule.length === 0 ? (
             <Text style={styles.errorMsg}>Nothing to see here...</Text>
           ) : (
-            <>
             <View style={styles.table}>
-            {/* Header row */}
-            <View style={styles.tableRow}>
-              <Text style={styles.tableHeaderCell}>Period</Text>
-              <Text style={styles.tableHeaderCell}>Class</Text>
-            </View>
-            {/* Schedule rows */}
-            {schedule.map((x, index) => (
-              <View style={styles.tableRow} key={index}>
-                <Text style={styles.tableCell}>{`Period ${index + 1}`}</Text>
-                <Text style={styles.tableCell}>{x}</Text>
-
-                {isEditingSchedule && (
-                  <TouchableOpacity onPress={deleteSchedule(index, creator_id)} style={styles.dltBtn}>
-                    <Text style={styles.dltTxt}>X</Text>
-                  </TouchableOpacity>)
-                }
-
+              {/* Header row */}
+              <View style={styles.tableRow}>
+                <Text style={styles.tableHeaderCell}>Period</Text>
+                <Text style={styles.tableHeaderCell}>Class</Text>
               </View>
-            ))}
-          </View>
-          </>
+              {/* Schedule rows */}
+              {editedSchedule.map((x, index) => (
+                <View style={styles.tableRow} key={index}>
+                  <Text style={styles.tableCell}>{`Period ${index + 1}`}</Text>
+                  {isEditingSchedule ? (
+                    <TextInput
+                      onChangeText={(text) => {
+                        const newEditedSchedule = [...editedSchedule];
+                        newEditedSchedule[index] = text;
+                        setEditedSchedule(newEditedSchedule);
+                      }}
+                      value={x}
+                      style={styles.tableCell}
+                      multiline={true}
+                    />
+                  ) : (
+                    <Text style={styles.tableCell}>{x}</Text>
+                  )}
+
+                  {isEditingSchedule && (
+                    <TouchableOpacity
+                      onPress={() => removeClass(index)}
+                      style={styles.dltBtn}
+                    >
+                      <Text style={styles.dltTxt}>X</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+            </View>
           )}
 
-        {isEditingSchedule && (
-          <>
-          <TextInput onSubmitEditing={addSchedule(scheduleTxt, creator_id )} onChangeText={(text) => {setScheduleTxt(text)}} value={scheduleTxt} style={styles.scheduleInp} placeholder='New Class'/>
-          <TouchableOpacity onPress={addSchedule(scheduleTxt, creator_id )} style={styles.addBtn}>
-            <Text style={styles.addTxt}>+</Text>
-          </TouchableOpacity> 
-          </>)
-        }
-          
+          {isEditingSchedule && (
+            <>
+              <TextInput
+                onSubmitEditing={addClass}
+                onChangeText={(text) => setScheduleTxt(text)}
+                value={scheduleTxt}
+                style={styles.scheduleInp}
+                placeholder="New Class"
+              />
+              <TouchableOpacity onPress={addClass} style={styles.addBtn}>
+                <Text style={styles.addTxt}>+</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
 
@@ -319,17 +361,17 @@ const AcademicTab = ({academic, schedule, creator_id, update}:{academic:Array<Ac
         {academic.map((x, index) => (
           <View style={styles.academicCard} key={index}>
             <Text style={styles.cardTitle}>{x.title}</Text>
-            <Text style={styles.cardDescription}>
-              {x.description}
+            <Text style={styles.cardDescription}>{x.description}</Text>
+            <Text style={styles.cardDate}>
+              Start Date: {new Date(x.startedAt * 1000).toDateString()}
             </Text>
             <Text style={styles.cardDate}>
-              Start Date: {new Date(x.startedAt*1000).toDateString()}
+              End Date: {!x.endedAt ? '?' : new Date((x.endedAt || 0) * 1000).toDateString()}
             </Text>
-            <Text style={styles.cardDate}>End Date: {!x.endedAt ? ('?'):(new Date((x.endedAt || 0)*1000).toDateString())}</Text>
           </View>
         ))}
 
-        {academic.length == 0 && (<Text style={styles.errorMsg}>Nothing to see here...</Text>)}
+        {academic.length === 0 && <Text style={styles.errorMsg}>Nothing to see here...</Text>}
       </View>
     </ScrollView>
   );
@@ -510,31 +552,31 @@ const styles = StyleSheet.create({
     marginRight: 5,
     backgroundColor: 'red',
     borderRadius: 20,
-    width: 20, // Adjust the width to your preference
-    height: 20, // Adjust the height to your preference
+    width: 20, 
+    height: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dltTxt: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: 16, // Adjust the font size to your preference
+    fontSize: 16,
   },
 
   addBtn: {
-    backgroundColor: 'green', // Adjust the background color to your preference
+    backgroundColor: 'green',
     borderRadius: 5,
-    width: 350, // Adjust the width to your preference
-    height: 30, // Adjust the height to your preference
+    width: 350,
+    height: 30,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
   },
   
   addTxt: {
-    color: 'white', // Adjust the text color to your preference
+    color: 'white',
     fontWeight: 'bold',
-    fontSize: 16, // Adjust the font size to your preference
+    fontSize: 16,
   },
 
   scheduleInp: {
