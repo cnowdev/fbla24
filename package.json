@@ -19,7 +19,7 @@
     "gravatar-url": "^4.0.1",
     "md5": "^2.3.0",
     "react": "18.2.0",
-    "react-native": "0.72.4",
+    "react-native": "0.72.5",
     "react-native-dotenv": "^3.4.9"
   },
   "devDependencies": {

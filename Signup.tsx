@@ -122,7 +122,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
   async function handleSignupPress(){
     var emailResp = await getUserByEmail(email)
     var userResp = await getUserByUsername(username)
-    if(!username || !name || !email ||!password||!confirm){
+    if(!username.trim() || !name.trim() || !email.trim() ||!password ||!confirm){
       showError('Please enter all fields.')
     } else if(password != confirm){
       showError('Password and Confirm Password do not match.')

@@ -19,8 +19,8 @@ export type User = {
 export type Activity = {
     title: string,
     description: string,
-    startedAt: number, 
-    endedAt: number | null, 
+    startedAt: number | string, 
+    endedAt: number | string| null, 
 }
 
 export type ProfileType = {

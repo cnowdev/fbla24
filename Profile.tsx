@@ -71,7 +71,12 @@ export default function Profile({showError, username}:{showError: any, username:
               id: doc.id,
               creator_id: doc.data().creator_id,
               classes: doc.data().classes,
-              academic: doc.data().academic,
+              academic: doc.data().academic.map((x:any) => {return {
+                title: x.title,
+                description: x.description,
+                startedAt: `${('0'+ (new Date(x.startedAt * 1000).getUTCMonth() +1 )).slice(-2)}-${('0' + new Date(x.startedAt * 1000).getUTCDate()).slice(-2)}-${new Date(x.startedAt * 1000).getUTCFullYear()}`,
+                endedAt: x.endedAt ? `${('0'+ (new Date(x.endedAt * 1000).getUTCMonth() +1 )).slice(-2)}-${('0' + new Date(x.endedAt * 1000).getUTCDate()).slice(-2)}-${new Date(x.endedAt * 1000).getUTCFullYear()}` : null,
+              }}),
               atheletic: doc.data().atheletic,
               achievements: doc.data().achievements,
               club: doc.data().club,
@@ -230,10 +235,23 @@ const MainTab = ({user, update}:{user:any, update: Function}) => {
   );
 };
 
-const AcademicTab = ({ academic, schedule, creator_id, update }: { academic: Array<Activity> | [], schedule: Array<string> | [], creator_id: string, update: Function }) => {
+const AcademicTab = ({ academic, schedule, creator_id, update }: {
+  academic: Array<Activity> | [],
+  schedule: Array<string> | [],
+  creator_id: string,
+  update: Function
+}) => {
   const [isEditingSchedule, setIsEditingSchedule] = useState(false);
   const [editedSchedule, setEditedSchedule] = useState([...schedule]);
   const [scheduleTxt, setScheduleTxt] = useState('');
+
+  const [isEditingAcademic, setIsEditingAcademic] = useState(false);
+  const [editedAcademic, setEditedAcademic] = useState([...academic]);
+  const [academicTitle, setAcademicTitle] = useState('');
+  const [academicDescription, setAcademicDescription] = useState('');
+  const [academicStartedAt, setAcademicStartedAt] = useState('');
+  const [academicEndedAt, setAcademicEndedAt] = useState('');
+
   
   useEffect(() => {
     setEditedSchedule([...schedule]);
@@ -281,7 +299,83 @@ const AcademicTab = ({ academic, schedule, creator_id, update }: { academic: Arr
     setEditedSchedule(newSchedule);
   }
 
+  useEffect(() => {
+    setEditedAcademic([...academic]);
+  }, [academic]);
+
+  function addAcademic() {
+    if (academicTitle.trim() !== '' && academicDescription.trim() !== '' && academicStartedAt.trim() !== '') {
+      const newAcademicEntry = {
+        title: academicTitle,
+        description: academicDescription,
+        startedAt: academicStartedAt,
+        endedAt: academicEndedAt ? academicEndedAt : null,
+      };
+      setEditedAcademic([...editedAcademic, newAcademicEntry]);
+      setAcademicTitle('');
+      setAcademicDescription('');
+      setAcademicStartedAt('');
+      setAcademicEndedAt('');
+    }
+  }
+
+  function removeAcademic(index: number) {
+    const newAcademic = [...editedAcademic];
+    newAcademic.splice(index, 1);
+    setEditedAcademic(newAcademic);
+  }
+
+
+  function toggleAcademicEditing() {
+    setIsEditingAcademic(!isEditingAcademic);
+  }
+
+  async function updateAcademic() {
+
+    let invalidDates = false
+    editedAcademic.forEach((x:any)=>{
+      if(!/^\d{2}-\d{2}-\d{4}$/.test(x.startedAt.toString())){
+        invalidDates = true
+      }
+      if((x.endedAt && !/^\d{2}-\d{2}-\d{4}$/.test(x.endedAt.toString()))){
+        invalidDates = true
+      }
+    })
+
+    if(!invalidDates){
+      toggleAcademicEditing();
+      const querySnapshot = await getDocs(query(collection(db, 'profile'), where('creator_id', '==', creator_id)));
+      const profileDoc = querySnapshot.docs[0];
+      const profileDocRef = doc(db, 'profile', profileDoc.id);
+      await updateDoc(profileDocRef, { academic: editedAcademic.map((x:any)=>{
+        var split_start = x.startedAt.split('-');
+        var start = new Date(`${split_start[2]}-${split_start[0]}-${split_start[1]}`).getTime() / 1000;
+
+        if(x.endedAt){
+          var split_end = x.endedAt.split('-') ?? [];
+        } else{
+          var split_end = null
+        }
+        if(split_end){
+          var end = new Date(`${split_end[2]}-${split_end[0]}-${split_end[1]}`).getTime() / 1000;
+        } else{
+          var end = 0
+        }
+        return {
+          title: x.title,
+          description: x.description,
+          startedAt: start,
+          endedAt: split_end ? end : null,
+        }
+      })});
+      update();
+    }
+  }
+
   return (
+    <KeyboardAvoidingView 
+    behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+      keyboardVerticalOffset={100}>
     <ScrollView style={styles.scheduleContainer}>
       <View style={styles.scheduleSection}>
         <Text style={styles.sectionTitle}>Schedule</Text>
@@ -357,23 +451,136 @@ const AcademicTab = ({ academic, schedule, creator_id, update }: { academic: Arr
 
       <View style={styles.academicSection}>
         <Text style={styles.sectionTitle}>Academic</Text>
-        {/* Academic cards */}
-        {academic.map((x, index) => (
-          <View style={styles.academicCard} key={index}>
-            <Text style={styles.cardTitle}>{x.title}</Text>
-            <Text style={styles.cardDescription}>{x.description}</Text>
-            <Text style={styles.cardDate}>
-              Start Date: {new Date(x.startedAt * 1000).toDateString()}
-            </Text>
-            <Text style={styles.cardDate}>
-              End Date: {!x.endedAt ? '?' : new Date((x.endedAt || 0) * 1000).toDateString()}
-            </Text>
-          </View>
-        ))}
+        {!isEditingAcademic && (
+          <Text onPress={toggleAcademicEditing} style={styles.editText}>
+            Edit
+          </Text>
+        )}
+        {isEditingAcademic && (
+          <Text onPress={updateAcademic} style={styles.editText}>
+            Save
+          </Text>
+        )}
 
-        {academic.length === 0 && <Text style={styles.errorMsg}>Nothing to see here...</Text>}
+        <View>
+          {editedAcademic.length === 0 ? (
+            <Text style={styles.errorMsg}>Nothing to see here...</Text>
+          ) : (
+            <View>
+              {editedAcademic.map((entry, index) => (
+                <View style={styles.academicCard} key={index}>
+                  {isEditingAcademic ? (
+                    <>
+                      <TextInput
+                        onChangeText={(text) => {
+                          const newEditedAcademic = [...editedAcademic];
+                          newEditedAcademic[index].title = text;
+                          setEditedAcademic(newEditedAcademic);
+                        }}
+                        value={entry.title}
+                        style={styles.cardTitle}
+                        placeholder='Title'
+                      />
+                      <TextInput
+                        onChangeText={(text) => {
+                          const newEditedAcademic = [...editedAcademic];
+                          newEditedAcademic[index].description = text;
+                          setEditedAcademic(newEditedAcademic);
+                        }}
+                        value={entry.description}
+                        style={styles.cardDescription}
+                        placeholder='Description'
+                        multiline={true}
+
+                      />
+                      <View style={styles.row}>
+                      <Text>Start Date: </Text>
+                      <TextInput
+                        onChangeText={(text) => {
+                          const newEditedAcademic = [...editedAcademic];
+                          newEditedAcademic[index].startedAt = text;
+                          setEditedAcademic(newEditedAcademic);
+                        }}
+                        value={entry.startedAt.toString()}
+                        style={styles.cardDate}
+                        placeholder='Start Date (MM-DD-YYYY)'
+                      />
+                      </View>
+                      {!/^\d{2}-\d{2}-\d{4}$/.test(editedAcademic[index].startedAt.toString()) && (<Text style={styles.errorMsg}>Start date must be formatted MM-DD-YYYY.</Text>)}
+
+                      <View style={styles.row}>
+                      <Text>End Date: </Text>
+                      <TextInput
+                        onChangeText={(text) => {
+                          const newEditedAcademic = [...editedAcademic];
+                          newEditedAcademic[index].endedAt = text;
+                          setEditedAcademic(newEditedAcademic);
+                        }}
+                        value={entry.endedAt?.toString()}
+                        style={styles.cardDate}
+                        placeholder='End Date (MM-DD-YYYY)'
+                      />
+                      </View>
+                      {//@ts-ignore
+                      (editedAcademic[index].endedAt && !/^\d{2}-\d{2}-\d{4}$/.test(editedAcademic[index].endedAt.toString())) && (<Text style={styles.errorMsg}>End date must be formatted MM-DD-YYYY or empty.</Text>)}
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.cardTitle}>{entry.title}</Text>
+                      <Text style={styles.cardDescription}>{entry.description}</Text>
+                      <Text style={styles.cardDate}>Start Date: {entry.startedAt}</Text>
+                      <Text style={styles.cardDate}>End Date: {entry.endedAt || '?'}</Text>
+                    </>
+                  )}
+
+                  {isEditingAcademic && (
+                    <TouchableOpacity onPress={() => removeAcademic(index)} style={styles.dltBtn}>
+                      <Text style={styles.dltTxt}>X</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {isEditingAcademic && (
+            <>
+             <View style={styles.academicCard} >
+              <TextInput
+                onChangeText={(text) => setAcademicTitle(text)}
+                value={academicTitle}
+                style={styles.cardTitle}
+                placeholder="Title"
+              />
+              <TextInput
+                onChangeText={(text) => setAcademicDescription(text)}
+                value={academicDescription}
+                style={styles.cardDescription}
+                placeholder="Description"
+                multiline={true}
+              />
+              <TextInput
+                onChangeText={(text) => setAcademicStartedAt(text)}
+                value={academicStartedAt.toString()}
+                style={styles.cardDate}
+                placeholder="Start Date"
+              />
+              <TextInput
+                onChangeText={(text) => setAcademicEndedAt(text)}
+                value={academicEndedAt.toString()}
+                style={styles.cardDate}
+                placeholder="End Date (optional)"
+              />
+            </View>
+            <TouchableOpacity onPress={addAcademic} style={styles.addBtn}>
+              <Text style={styles.addTxt}>+</Text>
+            </TouchableOpacity>
+            </>
+          )}
+        </View>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -526,13 +733,16 @@ const styles = StyleSheet.create({
     padding: 5,
     flex: 1,
   },
-  academicSection: {},
+  academicSection: {
+    marginBottom: 24,
+  },
   academicCard: {
     borderWidth: 1,
     borderColor: '#5f9ea0',
     borderRadius: 8,
     padding: 16,
-    marginTop: 16,
+    marginTop: 8,
+    marginBottom: 16,
   },
   cardTitle: {
     fontSize: 18,
@@ -545,6 +755,7 @@ const styles = StyleSheet.create({
   },
   cardDate: {
     fontSize: 14,
+    marginBottom: 8,
   },
 
   dltBtn: {
@@ -586,5 +797,9 @@ const styles = StyleSheet.create({
     borderColor: '#5f9ea0',
     borderWidth: .75,
     padding: 5,
-  }
+  },
+
+  row: {
+    flexDirection: 'row',
+  },
 });
