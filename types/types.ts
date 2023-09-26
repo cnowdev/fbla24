@@ -29,6 +29,6 @@ export type ProfileType = {
     classes: Array<string>,
     achievements: Array<string>,
     academic: Array<Activity>,
-    atheletic: Array<Activity>
+    athletic: Array<Activity>
     club: Array<Activity>
 }
