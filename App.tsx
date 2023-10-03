@@ -4,9 +4,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from './Home';
+import UserProfile from './UserProfile';
 import Profile from './Profile';
 import LogIn from './Login';
 import Signup from './Signup';
+import Search from './Search';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 
@@ -80,14 +82,24 @@ export default function App() {
             {(props) => <Home {...props} update={update} />}
           </Tab.Screen>
 
-          <Tab.Screen name="Profile">
-            {(props) => <Profile {...props} showError={setError} username={isSignedIn}/>}
+          <Tab.Screen name="Search">
+            {(props) => <Search {...props} showError={showError} username={isSignedIn}/>}
           </Tab.Screen>
+
+          <Tab.Screen name="Profile">
+            {(props) => <UserProfile {...props} showError={setError} username={isSignedIn}/>}
+          </Tab.Screen>
+
+          <Tab.Screen name="Hidden" >
+            {(props) => <Profile {...props} showError={setError} />}
+          </Tab.Screen>
+
           </Tab.Navigator>
         )}
     </NavigationContainer>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
