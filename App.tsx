@@ -4,9 +4,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from './Home';
+import UserProfile from './UserProfile';
 import Profile from './Profile';
 import LogIn from './Login';
 import Signup from './Signup';
+import Search from './Search';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 
@@ -19,19 +21,21 @@ export default function App() {
   const [isSignedIn, setIsSignedIn] = React.useState('');
   const [up, setUp] = React.useState(false);
 
+  function TabNavigator() {
+    return (
   
-function TabNavigator() {
-  return (
+      <Tab.Navigator>
+      <Tab.Screen name="Home" options={{headerShown: false}} children={() => <Home update={update}/> }/>
 
-    <Tab.Navigator>
-    <Tab.Screen name="Home" options={{headerShown: false}} children={()=><Home update={update}/>}/>
+      <Tab.Screen name="Search" children={(props) => <Search {...props} showError={showError} username={isSignedIn} />} />
+      <Tab.Screen name="Profile" children={ () => <UserProfile showError={setError} username={isSignedIn}/> } />
 
-    <Tab.Screen name="Profile" children={()=><Profile showError={setError} username={isSignedIn}/>}/>
 
-    </Tab.Navigator>
 
-  )
-}
+
+      </Tab.Navigator>
+    )
+  }
   
   const getLoggedInUserId = async () => {
     try {
@@ -91,17 +95,12 @@ function TabNavigator() {
         ) : (
           <Stack.Navigator>
             <Stack.Screen name="TabNavigator" children={() => <TabNavigator/>} options={{headerShown: false}}/>
+            <Stack.Screen name="Hidden" children={(props) => <Profile {...props} showError={showError}/> }/>
           </Stack.Navigator>
-        ) }
-
+        )}
     </NavigationContainer>
   );
-
-        }
-      
-
-
-
+}
 
 
 const styles = StyleSheet.create({

@@ -112,7 +112,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
       classes: [],
       achievements: [],
       academic: [],
-      atheletic: [],
+      athletic: [],
       club: [],
     } 
     await addDoc(profileCollection, profile)
@@ -120,11 +120,15 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
   }
 
   async function handleSignupPress(){
+    let password_ref = password
+    setPassword('')
+    
     var emailResp = await getUserByEmail(email)
     var userResp = await getUserByUsername(username)
-    if(!username.trim() || !name.trim() || !email.trim() ||!password ||!confirm){
+    
+    if(!username.trim() || !name.trim() || !email.trim() ||!password_ref ||!confirm){
       showError('Please enter all fields.')
-    } else if(password != confirm){
+    } else if(password_ref != confirm){
       showError('Password and Confirm Password do not match.')
     } else if(!/^[A-Za-z0-9.]+@[A-Za-z0-9]+\.[A-Za-z]+$/.test(email)){
       showError('Not a valid email.')
@@ -134,17 +138,23 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
       showError('This email already has an account.')
     } else if (userResp[0]){
       showError('Username already exists.')
-    }else{
+    }else{      
       let user: User = {
         name: name,
         username: username.toLowerCase(),
         email: email.toLowerCase(),
         followers: [],
-        password: password,
+        password: password_ref,
         posts: [],
         about: "",
       }
-      addUser(user)
+      setName('')
+      setUsername('')
+      setEmail('')
+      setPassword('')
+      setConfirm('')
+
+      await addUser(user)
       try {
         await AsyncStorage.setItem('user', username);
       } catch (e) {
