@@ -18,6 +18,20 @@ export default function App() {
   const [error, setError] = React.useState('');
   const [isSignedIn, setIsSignedIn] = React.useState('');
   const [up, setUp] = React.useState(false);
+
+  
+function TabNavigator() {
+  return (
+
+    <Tab.Navigator>
+    <Tab.Screen name="Home" options={{headerShown: false}} children={()=><Home update={update}/>}/>
+
+    <Tab.Screen name="Profile" children={()=><Profile showError={setError} username={isSignedIn}/>}/>
+
+    </Tab.Navigator>
+
+  )
+}
   
   const getLoggedInUserId = async () => {
     try {
@@ -75,19 +89,20 @@ export default function App() {
           </Stack.Screen>
           </Stack.Navigator>
         ) : (
-          <Tab.Navigator>
-          <Tab.Screen name="Home" options={{headerShown: false}}>
-            {(props) => <Home {...props} update={update} />}
-          </Tab.Screen>
+          <Stack.Navigator>
+            <Stack.Screen name="TabNavigator" children={() => <TabNavigator/>} options={{headerShown: false}}/>
+          </Stack.Navigator>
+        ) }
 
-          <Tab.Screen name="Profile">
-            {(props) => <Profile {...props} showError={setError} username={isSignedIn}/>}
-          </Tab.Screen>
-          </Tab.Navigator>
-        )}
     </NavigationContainer>
   );
-}
+
+        }
+      
+
+
+
+
 
 const styles = StyleSheet.create({
   container: {
