@@ -14,6 +14,7 @@ export type User = {
     posts: Post[],
     username: string,
     about: string,
+    hours: number,
 }
 
 export type Activity = {
@@ -30,5 +31,6 @@ export type ProfileType = {
     achievements: Array<string>,
     academic: Array<Activity>,
     athletic: Array<Activity>
+    performing: Array<Activity>
     club: Array<Activity>
 }

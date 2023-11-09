@@ -19,7 +19,8 @@ export default function UserProfile({showError, route}:{showError: any, route:an
     posts: [],
     username: "",
     about: "", 
-    id: ""
+    id: "",
+    hours: 0,
     }
 
     const emptyProfile:ProfileType = {
@@ -30,6 +31,7 @@ export default function UserProfile({showError, route}:{showError: any, route:an
     athletic: [],
     achievements: [],
     club: [],
+    performing: [],
     }
 
     const [user, setUser] = useState(emptyUser);
@@ -99,6 +101,13 @@ export default function UserProfile({showError, route}:{showError: any, route:an
                     startedAt: `${('0'+ (new Date(x.startedAt * 1000).getUTCMonth() +1 )).slice(-2)}-${('0' + new Date(x.startedAt * 1000).getUTCDate()).slice(-2)}-${new Date(x.startedAt * 1000).getUTCFullYear()}`,
                     endedAt: x.endedAt ? `${('0'+ (new Date(x.endedAt * 1000).getUTCMonth() +1 )).slice(-2)}-${('0' + new Date(x.endedAt * 1000).getUTCDate()).slice(-2)}-${new Date(x.endedAt * 1000).getUTCFullYear()}` : null,
                 }}),
+
+                performing: doc.data().performing.map((x:any) => {return {
+                  title: x.title,
+                  description: x.description,
+                  startedAt: `${('0'+ (new Date(x.startedAt * 1000).getUTCMonth() +1 )).slice(-2)}-${('0' + new Date(x.startedAt * 1000).getUTCDate()).slice(-2)}-${new Date(x.startedAt * 1000).getUTCFullYear()}`,
+                  endedAt: x.endedAt ? `${('0'+ (new Date(x.endedAt * 1000).getUTCMonth() +1 )).slice(-2)}-${('0' + new Date(x.endedAt * 1000).getUTCDate()).slice(-2)}-${new Date(x.endedAt * 1000).getUTCFullYear()}` : null,
+              }}),
                 }
                 data.push(profile);
             });
@@ -119,6 +128,7 @@ export default function UserProfile({showError, route}:{showError: any, route:an
                 password: doc.data().password,
                 posts: doc.data().posts,
                 about: doc.data().about,
+                hours: doc.data().hours
                 }
                 data.push(user);
             });
@@ -137,7 +147,7 @@ export default function UserProfile({showError, route}:{showError: any, route:an
                 {(props) => <MainTab {...props} user={user}/>}
             </Tab.Screen>
             <Tab.Screen name="Academic">
-                {(props) => <AcademicTab {...props} academic={profile.academic ?? []} schedule={profile.classes ?? []} creator_id={profile.creator_id ?? ''} update={update}/>}
+                {(props) => <AcademicTab {...props} academic={profile.academic ?? []} schedule={profile.classes ?? []} creator_id={profile.creator_id ?? ''} update={update} achievements={profile.achievements}/>}
             </Tab.Screen>
 
             <Tab.Screen name="Athletic">
@@ -145,7 +155,7 @@ export default function UserProfile({showError, route}:{showError: any, route:an
             </Tab.Screen>
 
             <Tab.Screen name="Club">
-                {(props) => <ClubsTab {...props} club={profile.club ?? []} creator_id={profile.creator_id ?? ''} update={update} schedule={profile.achievements}/>}
+                {(props) => <ClubsTab {...props} club={profile.club ?? []} creator_id={profile.creator_id ?? ''} update={update} performing={profile.performing}/>}
             </Tab.Screen>
             </Tab.Navigator>
         </>
@@ -169,8 +179,9 @@ const MainTab = ({user}:{user:any}) => {
         source={{uri: generateGravatarUrl(user.email)}}
         style={styles.profilePicture}
       />
-     <Text style={styles.name}>{user.name}</Text>
-      <Text style={styles.username}>@{user.username}</Text>
+    <Text style={styles.name}>{user.name}</Text>
+    <Text style={styles.username}>@{user.username}</Text>
+    <Text style={styles.gpa}>Community Service Hours: {user.hours}</Text>
 
       <View style={styles.aboutMe}>
       <ScrollView style={{flex: 1}}>
@@ -190,11 +201,12 @@ const MainTab = ({user}:{user:any}) => {
   );
 };
 
-const AcademicTab = ({ academic, schedule, creator_id, update }: {
+const AcademicTab = ({ academic, schedule, creator_id, update, achievements }: {
   academic: Array<Activity> | [],
   schedule: Array<string> | [],
   creator_id: string,
   update: Function
+  achievements: Array<String>,
 }) => {
 
   return (
@@ -225,6 +237,28 @@ const AcademicTab = ({ academic, schedule, creator_id, update }: {
         </View>
       </View>
             <ActivitySection academic={academic} update={update} creator_id={creator_id} title='Academic' section_name='academic'/>
+            <View style={styles.scheduleSection}>
+        <Text style={styles.sectionTitle}>Achievements</Text>
+
+        <View>
+          {achievements.length === 0 ? (
+            <Text style={styles.errorMsg}>Nothing to see here...</Text>
+          ) : (
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableHeaderCell}>Name</Text>
+              </View>
+              {achievements.map((x, index) => (
+                <View style={styles.tableRow} key={index}>
+                    <Text style={styles.tableCell}>{x}</Text>
+            
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      </View>
+      <View style={{height: 100}}/>
     </ScrollView>
   );
 };
@@ -239,35 +273,17 @@ const AthleticTab = ({athletic, update, creator_id}:{athletic: Array<Activity>, 
   );
 };
 
-const ClubsTab = ({club, update, creator_id, schedule}:{club: Array<Activity>, update: Function, creator_id: string, schedule:Array<string>}) => {
+const ClubsTab = ({club, update, creator_id, performing}:{club: Array<Activity>, update: Function, creator_id: string, performing:Array<Activity>}) => {
 
   return (
       <ScrollView style={styles.scheduleContainer}>
         <View style={styles.scheduleSection}>
           <ActivitySection academic={club} update={update} creator_id={creator_id} title='Clubs' section_name='club'/>
         </View>
-        
-        <View style={styles.scheduleSection}>
-        <Text style={styles.sectionTitle}>Achievements</Text>
 
-        <View>
-          {schedule.length === 0 ? (
-            <Text style={styles.errorMsg}>Nothing to see here...</Text>
-          ) : (
-            <View style={styles.table}>
-              <View style={styles.tableRow}>
-                <Text style={styles.tableHeaderCell}>Name</Text>
-              </View>
-              {schedule.map((x, index) => (
-                <View style={styles.tableRow} key={index}>
-                    <Text style={styles.tableCell}>{x}</Text>
-            
-                </View>
-              ))}
-            </View>
-          )}
+        <View style={styles.scheduleSection}>
+          <ActivitySection academic={performing} update={update} creator_id={creator_id} title='Performing Arts' section_name='performing'/>
         </View>
-      </View>
 
       <View style={{height: 100}}/>
       </ScrollView>
@@ -335,6 +351,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tabContent: {
+    backgroundColor: "white",
     padding: 20,
     flex: 1,
     alignItems: 'center',

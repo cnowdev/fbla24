@@ -14,7 +14,8 @@ export default function Search({navigation, showError, username}:{navigation: an
         posts: [],
         username: "",
         about: "", 
-        id: ""
+        id: "",
+        hours: 0,
     }
 
     const [results, setResults] = useState([emptyUser])
@@ -40,6 +41,7 @@ export default function Search({navigation, showError, username}:{navigation: an
               password: doc.data().password,
               posts: doc.data().posts,
               about: doc.data().about,
+              hours: doc.data().hours,
             }
             data.push(user);
             });
