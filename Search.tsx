@@ -50,7 +50,6 @@ export default function Search({navigation, showError, username}:{navigation: an
 
     useEffect(() => {      
       const filterResults = () => {
-        console.log('here1');
         if (search === '') {
           setFilteredResults(results);
         } else {
@@ -65,12 +64,11 @@ export default function Search({navigation, showError, username}:{navigation: an
           }));
         }
       };
-
-      let timeoutId = setTimeout(filterResults, 300); 
+      let timeoutId = setTimeout(filterResults, 50); 
       
       return () => {
         clearTimeout(timeoutId);
-      };
+      }
     }, [search]);
   
 
@@ -81,7 +79,7 @@ export default function Search({navigation, showError, username}:{navigation: an
     };
 
     function handleProfileNavigation(username:string){
-        navigation.navigate('Hidden', { username }); 
+        navigation.navigate('User Profile', { username }); 
     }
 
     return (
@@ -94,25 +92,26 @@ export default function Search({navigation, showError, username}:{navigation: an
               onChangeText={(text) => setSearch(text)}
             />
           </View>
-          <ScrollView style={styles.results}>
-            {filteredResults.map((elem, index) => (
-            <TouchableOpacity onPress={()=>handleProfileNavigation(elem.username)} key={index}>
-              <View style={styles.resultItem}>
-                <Image
-                  source={{uri: generateGravatarUrl(elem.email)}}
-                  style={styles.profilePicture}
-                />
-                <View style={styles.resultText}>
-                  <Text style={styles.name}>{elem.name}</Text>
-                  <Text style={styles.username}>@{elem.username}</Text>
+          <ScrollView style={styles.results}>    
+            {filteredResults && filteredResults[0]?.name && (
+              filteredResults.map((elem, index) => (
+                <TouchableOpacity onPress={() => handleProfileNavigation(elem.username)} key={index}>
+                  <View style={styles.resultItem}>
+                    <Image
+                      source={{ uri: generateGravatarUrl(elem.email) }}
+                      style={styles.profilePicture}
+                    />
+                    <View style={styles.resultText}>
+                      <Text style={styles.name}>{elem.name}</Text>
+                      <Text style={styles.username}>@{elem.username}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
 
-                </View>
-              </View>
-            </TouchableOpacity>
-            ))}
-
-            {filteredResults.length == 0 && (
-                <Text style={{textAlign: 'center'}}>No results found.</Text>
+            {(!filteredResults || !filteredResults[0]?.name) && (
+              <Text style={{ textAlign: 'center' }}>No results found.</Text>
             )}
           </ScrollView>
         </View>

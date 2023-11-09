@@ -94,8 +94,8 @@ export default function App() {
           </Stack.Navigator>
         ) : (
           <Stack.Navigator>
-            <Stack.Screen name="TabNavigator" children={() => <TabNavigator/>} options={{headerShown: false}}/>
-            <Stack.Screen name="Hidden" children={(props) => <Profile {...props} showError={showError}/> }/>
+            <Stack.Screen name="Back" children={() => <TabNavigator/>} options={{headerShown: false}}/>
+            <Stack.Screen name="User Profile" children={(props) => <Profile {...props} showError={showError}/> }/>
           </Stack.Navigator>
         )}
     </NavigationContainer>

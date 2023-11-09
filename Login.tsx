@@ -77,7 +77,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
       style={styles.keyboardContainer}>
         
         <View style={styles.bcontainer}>
-          <Text style={styles.logo}>My App</Text>
+          <Text style={styles.logo}>InFBLA</Text>
         </View>
           <View style={styles.inputView}>
             <TextInput

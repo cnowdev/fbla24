@@ -71,14 +71,14 @@ export default function UserProfile({showError, username}:{showError: any, usern
               id: doc.id,
               creator_id: doc.data().creator_id,
               classes: doc.data().classes,
-              academic: doc.data().academic.map((x:any) => {return {
+              academic: doc.data().academic?.map((x:any) => {return {
                 title: x.title,
                 description: x.description,
                 startedAt: `${('0'+ (new Date(x.startedAt * 1000).getUTCMonth() +1 )).slice(-2)}-${('0' + new Date(x.startedAt * 1000).getUTCDate()).slice(-2)}-${new Date(x.startedAt * 1000).getUTCFullYear()}`,
                 endedAt: x.endedAt ? `${('0'+ (new Date(x.endedAt * 1000).getUTCMonth() +1 )).slice(-2)}-${('0' + new Date(x.endedAt * 1000).getUTCDate()).slice(-2)}-${new Date(x.endedAt * 1000).getUTCFullYear()}` : null,
               }}),
 
-              athletic: doc.data().athletic.map((x:any) => {return {
+              athletic: doc.data().athletic?.map((x:any) => {return {
                 title: x.title,
                 description: x.description,
                 startedAt: `${('0'+ (new Date(x.startedAt * 1000).getUTCMonth() +1 )).slice(-2)}-${('0' + new Date(x.startedAt * 1000).getUTCDate()).slice(-2)}-${new Date(x.startedAt * 1000).getUTCFullYear()}`,
@@ -87,7 +87,7 @@ export default function UserProfile({showError, username}:{showError: any, usern
 
               achievements: doc.data().achievements,
 
-              club: doc.data().club.map((x:any) => {return {
+              club: doc.data().club?.map((x:any) => {return {
                 title: x.title,
                 description: x.description,
                 startedAt: `${('0'+ (new Date(x.startedAt * 1000).getUTCMonth() +1 )).slice(-2)}-${('0' + new Date(x.startedAt * 1000).getUTCDate()).slice(-2)}-${new Date(x.startedAt * 1000).getUTCFullYear()}`,
@@ -166,12 +166,12 @@ const MainTab = ({user, update}:{user:any, update: Function}) => {
   }, [isEditing])
 
   async function setFirestoreAbout(username:string, about:string){
-    setIsEditing(false);
     username = username.toLowerCase();
     const querySnapshot = await getDocs(query(collection(db, 'users'), where('username', '==', username)));
     const userDoc = querySnapshot.docs[0];
     const userDocRef = await doc(db,'users', userDoc.id);
     await updateDoc(userDocRef, { about: about });
+    setIsEditing(false);
     update();
   };
 
@@ -343,7 +343,7 @@ const AcademicTab = ({ academic, schedule, creator_id, update }: {
                 <Text style={styles.tableHeaderCell}>Class</Text>
               </View>
               {/* Schedule rows */}
-              {editedSchedule.map((x, index) => (
+              {editedSchedule?.map((x, index) => (
                 <View style={styles.tableRow} key={index}>
                   <Text style={styles.tableCell}>{`Period ${index + 1}`}</Text>
                   {isEditingSchedule ? (
@@ -502,7 +502,7 @@ const ClubsTab = ({club, update, creator_id, schedule}:{club: Array<Activity>, u
                 <Text style={styles.tableHeaderCell}>Name</Text>
               </View>
               {/* Schedule rows */}
-              {editedSchedule.map((x, index) => (
+              {editedSchedule?.map((x, index) => (
                 <View style={styles.tableRow} key={index}>
                   {isEditingSchedule ? (
                     <TextInput
@@ -587,7 +587,7 @@ const ActivitySection = ({ academic, update, creator_id, title, section_name}:{a
       const profileDocRef = doc(db, 'profile', profileDoc.id);
 
       if(section_name == 'academic'){
-        await updateDoc(profileDocRef, { academic: editedAcademic.map((x:any)=>{
+        await updateDoc(profileDocRef, { academic: editedAcademic?.map((x:any)=>{
           var split_start = x.startedAt.split('-');
           var start = new Date(`${split_start[2]}-${split_start[0]}-${split_start[1]}`).getTime() / 1000;
 
@@ -611,7 +611,7 @@ const ActivitySection = ({ academic, update, creator_id, title, section_name}:{a
       }
 
       if(section_name == 'athletic'){
-        await updateDoc(profileDocRef, { athletic: editedAcademic.map((x:any)=>{
+        await updateDoc(profileDocRef, { athletic: editedAcademic?.map((x:any)=>{
           var split_start = x.startedAt.split('-');
           var start = new Date(`${split_start[2]}-${split_start[0]}-${split_start[1]}`).getTime() / 1000;
 
@@ -635,7 +635,7 @@ const ActivitySection = ({ academic, update, creator_id, title, section_name}:{a
       }
 
       if(section_name == 'club'){
-        await updateDoc(profileDocRef, { club: editedAcademic.map((x:any)=>{
+        await updateDoc(profileDocRef, { club: editedAcademic?.map((x:any)=>{
           var split_start = x.startedAt.split('-');
           var start = new Date(`${split_start[2]}-${split_start[0]}-${split_start[1]}`).getTime() / 1000;
 
@@ -706,7 +706,7 @@ const ActivitySection = ({ academic, update, creator_id, title, section_name}:{a
           <Text style={styles.errorMsg}>Nothing to see here...</Text>
         ) : (
           <View>
-            {editedAcademic.map((entry, index) => (
+            {editedAcademic?.map((entry, index) => (
               <View style={styles.academicCard} key={index}>
                 
                 {isEditingAcademic ? (

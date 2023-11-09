@@ -172,7 +172,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
       style={styles.keyboardContainer}
       keyboardVerticalOffset={Platform.OS === 'ios' ? -40 : 0}>
     <View style={styles.container}>
-      <Text style={styles.logo}>My App</Text>
+      <Text style={styles.logo}>InFBLA</Text>
       <View style={styles.inputView}>
         <TextInput
           style={styles.inputText}
