@@ -42,6 +42,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
               password: doc.data().password,
               posts: doc.data().posts,
               about: doc.data().about,
+              hours: doc.data().hours,
             }
             data.push(user);
         });

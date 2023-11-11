@@ -76,6 +76,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
               password: doc.data().password,
               posts: doc.data().posts,
               about: doc.data().about,
+              hours: doc.data().hours
             }
             data.push(user);
         });
@@ -96,6 +97,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
               password: doc.data().password,
               posts: doc.data().posts,
               about: doc.data().about,
+              hours: doc.data().hours,
             }
             data.push(user);
         });
@@ -114,6 +116,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
       academic: [],
       athletic: [],
       club: [],
+      performing: [],
     } 
     await addDoc(profileCollection, profile)
 
@@ -147,6 +150,7 @@ export default function Signup({ navigation, showError}:{navigation: any, showEr
         password: password_ref,
         posts: [],
         about: "",
+        hours: 0
       }
       setName('')
       setUsername('')
