@@ -1,7 +1,10 @@
 export type Post = {
-    author: string,
+    id?: string,
+    authorId: string,
+    authorPfp?: string,
     content: string, 
-    date: string,
+    createdAt: Date,
+    likes: string[],
 }
 
 

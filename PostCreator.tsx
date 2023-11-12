@@ -1,10 +1,16 @@
-import React from 'react'
-import {View, Text, Button, TouchableOpacity, StyleSheet, Pressable, TextInput} from 'react-native'
+import React, { useEffect, useState } from 'react'
+import {View, Text, Button, TouchableOpacity, StyleSheet, Pressable, TextInput, Image} from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 import { db } from './firebase';
-import { getDocs, query, collection, where, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { getDocs, query, collection, where, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
+import { User, Post } from './types/types';
 
-export default function PostCreator({username}: {username: string}) {
+export default function PostCreator({username, navigation}: {username: string, navigation:any}) {
+
+  const [currentUser, setCurrentUser] = useState<User>();
+  const [pfp, setPfp] = useState<string>('')
+
+  const [postContent, setPostContent] = useState<string>('');
 
     
     const generateGravatarUrl = (email:string, size = 200) => {
@@ -13,26 +19,64 @@ export default function PostCreator({username}: {username: string}) {
         return `https://www.gravatar.com/avatar/${emailHash}?s=500&d=identicon`;
     };
 
-    const getpfp = async(username: string) => {
+    const createPost =  async (authorId: string, content: string) => {
+      const postRef = doc(collection(db, 'posts'));
+      const post: Post = {
+        authorId: authorId,
+        content: content,
+        createdAt: new Date(),
+        likes: [],
+      }
+
+      await setDoc(postRef, post);
+
+    }
+
+
+
+    useEffect(() => {
+
+      const getCurrentUser = async(username: string) => {
         let q = query(collection(db, 'users'), where('username' , '==', username));
         const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          console.log(doc.data());
-        })
+        const userDoc =  querySnapshot.docs[0]
+        return userDoc;
     }
+
+      getCurrentUser(username).then((blah) => {
+        setCurrentUser({
+          id: blah.id,
+          email: blah.data().email,
+          followers: blah.data().followers,
+          name: blah.data().name,
+          password: blah.data().password,
+          posts: blah.data().posts,
+          username: blah.data().username,
+          about: blah.data().about,
+          hours: blah.data().hours,
+        });
+        setPfp(generateGravatarUrl(blah.data().email));
+      });
+    }, [username])
     
   return (
     <View style={styles.container}>
         
         <View>
-        <View style={styles.inputContainer}>
-        <Ionicons name="person" size={24} />
-      <TextInput style={styles.textInput} multiline={true} placeholder="What's on your mind?" />
-      <TouchableOpacity style={styles.postBtn} onPress={() => console.log(getpfp(username) )}>
-            <Text style={styles.postBtnText}>Post</Text>
-          </TouchableOpacity>
+          <View style={styles.inputContainer}>
+            <Image
+              source={{uri: pfp || 'https://www.gravatar.com/a'}}
+              style={styles.profilePicture}
+            />
+            <TextInput style={styles.textInput} multiline={true} placeholder="What's on your mind?" onChange={(value) => setPostContent(value.nativeEvent.text)}/>
+            <TouchableOpacity style={styles.postBtn} onPress={async() => {
+              await createPost(currentUser!.id!, postContent);
+              navigation.navigate('Home');
+            }}>
+              <Text style={styles.postBtnText}>Post</Text>
+            </TouchableOpacity>
     
-    </View>
+          </View>
         </View>
     </View>
   )
@@ -70,5 +114,11 @@ const styles = StyleSheet.create({
       },
       postBtnText: {
         color: 'white'
-      }
+      },
+      profilePicture: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        borderWidth: 1,
+      },
 })
