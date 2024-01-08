@@ -7,11 +7,15 @@ import { getDocs, query, collection, where, doc, updateDoc, getDoc, setDoc } fro
 import { db } from './firebase';
 import { Post } from './types/types';
 import { useIsFocused } from "@react-navigation/native";
+import { Feather } from '@expo/vector-icons'; 
+import { AntDesign } from '@expo/vector-icons'; 
 
 
-export default function Home({update, navigation}: {update: any, navigation: any}) {
+
+export default function Home({update, navigation, username}: {update: any, navigation: any, username: string}) {
   const [posts, setPosts] = useState<Post[]>([]);
   const isFocused = useIsFocused();
+  const [currentUserID, setCurrentUserID] = useState<string | null>(null);
   
 
   async function logout() {
@@ -52,6 +56,7 @@ export default function Home({update, navigation}: {update: any, navigation: any
         content: doc.data().content,
         createdAt: doc.data().createdAt.toDate(),
         likes: doc.data().likes,
+        replyingTo: doc.data().replyingTo,
       }]);
     });
 
@@ -60,12 +65,28 @@ export default function Home({update, navigation}: {update: any, navigation: any
 
   useEffect(() => {
     getPostsFeed();
+    // function to information about the current user
+    const getCurrentUser = async(username: string) => {
+      let q = query(collection(db, 'users'), where('username' , '==', username));
+      const querySnapshot = await getDocs(q);
+      const userDoc =  querySnapshot.docs[0]
+      return userDoc;
+    }
+    // fetch the current user, then save their information to a useState
+    getCurrentUser(username).then((doc) => {
+    setCurrentUserID(doc.id);
+      });
 
-  }, [isFocused]);
+
+
+  }, [isFocused, username]);
 
   const usePosts = posts.map((post: Post) => {
+    if(post.replyingTo) return;
     return (
-      <View style={styles.postContainer} key={post.id}>
+      <TouchableOpacity style={styles.postContainer} key={post.id} onPress={() => {
+        navigation.navigate('Post Viewer', {post: post})
+      }}>
       
 
 
@@ -75,8 +96,38 @@ export default function Home({update, navigation}: {update: any, navigation: any
         <Text style={styles.createdAt}>{post.createdAt.toLocaleDateString()}</Text>
       </View>
       <Text style={styles.content}>{post.content}</Text>
+
+      <View style={styles.interactionRow}>
+        <TouchableOpacity style={styles.interactionItem} onPress={() => {
+          if(post.likes.includes(currentUserID!)){
+            const index = post.likes.indexOf(currentUserID!);
+            post.likes.splice(index, 1);
+            setPosts([...posts]);
+            updateDoc(doc(db, 'posts', post.id!), {
+              likes: post.likes,
+            });
+          } else{
+            post.likes.push(currentUserID!);
+            setPosts([...posts]);
+            updateDoc(doc(db, 'posts', post.id!), {
+              likes: post.likes,
+            });
+          }
+        }}>
+          {post.likes.includes(currentUserID!) ? <AntDesign name="heart" size={24} color="#fa2c8b" /> : <AntDesign name="hearto" size={24} color="black" />}
+          <Text style={styles.interactionText}>{post.likes.length}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.interactionItem} onPress={() => {
+          navigation.navigate('Post Creator', {
+            post: post
+          });
+        }}>
+          <Feather name="message-circle" size={24} color="black" />
+          <Text style={styles.interactionText}></Text> 
+        </TouchableOpacity>
+      </View>
       
-    </View>
+    </TouchableOpacity>
     )
   })
   return (
@@ -175,5 +226,24 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: 8,
+  },
+  interactionRow: {
+    flexDirection: 'row',
+
+    borderTopWidth: 0,
+    borderTopColor: '#ddd',
+    paddingTop: 8,
+    marginTop: 8,
+    marginLeft: '2%'
+  },
+  interactionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  interactionText: {
+    marginLeft: 4, // spacing between icon and text
+    color: '#333',
+    fontSize: 14,
   },
 });

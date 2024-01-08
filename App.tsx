@@ -16,6 +16,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import PostCreator from './PostCreator';
 import { SimpleLineIcons } from '@expo/vector-icons'; 
+import PostViewer from './PostViewer';
 
 
 
@@ -52,14 +53,9 @@ export default function App() {
     return (
   
       <Tab.Navigator>
-      <Tab.Screen name="Home" options={{headerShown: false, tabBarIcon: (props) => <Entypo name="home" size={24} color={props.focused? 'blue' : 'black'} />}} children={(props) => <Home update={update} {...props}/> }/>
-
+      <Tab.Screen name="Home" options={{headerShown: false, tabBarIcon: (props) => <Entypo name="home" size={24} color={props.focused? 'blue' : 'black'} />}} children={(props) => <Home update={update} username={isSignedIn} {...props}/> }/>
       <Tab.Screen name="Search" options={{tabBarIcon: (props) => <AntDesign name="search1" size={24} color={props.focused? 'blue' : 'black'} />}}children={(props) => <Search {...props} showError={showError} username={isSignedIn} />} />
       <Tab.Screen name="Profile" options={{tabBarIcon: (props) => <Ionicons name="person" size={24} color={props.focused? 'blue' : 'black'} />, headerLeft: (props) => <SimpleLineIcons style= {{marginLeft: '5%'}}name="logout" size={24} color="red" onPress={logoutPrompt}/>}} children={ () => <UserProfile showError={setError} username={isSignedIn}/> } />
-
-
-
-
       </Tab.Navigator>
     )
   }
@@ -108,8 +104,7 @@ export default function App() {
         ): (
           <>
           </>
-        )}
-      
+        )}      
         {!isSignedIn ? (
           <Stack.Navigator>
           <Stack.Screen name="Log In" options={{headerShown: false}}>
@@ -125,6 +120,7 @@ export default function App() {
             <Stack.Screen name="Back" children={() => <TabNavigator/>} options={{headerShown: false}}/>
             <Stack.Screen name="User Profile" children={(props) => <Profile {...props} showError={showError}/> } />
             <Stack.Screen name="Post Creator" children={(props) => <PostCreator {...props} username={isSignedIn}/>} options={{headerLeftLabelVisible: false, headerTransparent: true, headerTitle: ''}}/>
+            <Stack.Screen name="Post Viewer" children={(props) => <PostViewer {...props} username={isSignedIn}/>} options={{headerLeftLabelVisible: false, headerTransparent: true, headerTitle: ''}}/>
           </Stack.Navigator>
         )}
     </NavigationContainer>

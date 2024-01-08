@@ -48,14 +48,17 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
         });
         return data;
     }
-
+    //function is called when the login button is pressed
     async function handleLogin() {
+       //check if the email or password fields are empty
         if(!email || !password) {
             showError('Please enter an email and password')
             return;
         } else {
+            //get the user's document from the DB using their email
             var user = await getUser(email);
-            console.log(user);
+            
+            //if the user doesn't exist, or the password is incorrect, show an error
             if(user.length == 0) {
                 showError('Email or password is incorrect')
                 return;
@@ -64,8 +67,8 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
                 showError('Email or password is incorrect')
                 return;
             } else{
+                //if the user exists and the password is correct, log them in
                 logInUser(user[0].username);
-                //console.log(await AsyncStorage.getItem('user'));
                 showError('Logged in')
             }
         }

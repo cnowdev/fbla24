@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from 'react'
-import {View, Text, Button, TouchableOpacity, StyleSheet, Pressable, TextInput, Image} from 'react-native'
+import {View, Text, Button, TouchableOpacity, StyleSheet, Pressable, TextInput, Image, TouchableWithoutFeedback, Keyboard} from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 import { db } from './firebase';
 import { getDocs, query, collection, where, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { User, Post } from './types/types';
+import { Feather } from '@expo/vector-icons'; 
+import { AntDesign } from '@expo/vector-icons'; 
 
-export default function PostCreator({username, navigation}: {username: string, navigation:any}) {
+
+const DismissKeyboard = ({children}: any) => (
+  <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+    {children}
+  </TouchableWithoutFeedback>
+);
+
+
+export default function PostCreator({username, navigation, route}: {username: string, navigation:any, route:any}) {
 
   const [currentUser, setCurrentUser] = useState<User>();
   const [pfp, setPfp] = useState<string>('')
@@ -26,6 +36,7 @@ export default function PostCreator({username, navigation}: {username: string, n
         content: content,
         createdAt: new Date(),
         likes: [],
+        replyingTo: route.params?.post?.id || null,
       }
 
       await setDoc(postRef, post);
@@ -34,31 +45,87 @@ export default function PostCreator({username, navigation}: {username: string, n
 
 
 
+//useEffect: code within only runs when the component is first rendered
     useEffect(() => {
-
+      // function to information about the current user
       const getCurrentUser = async(username: string) => {
         let q = query(collection(db, 'users'), where('username' , '==', username));
         const querySnapshot = await getDocs(q);
         const userDoc =  querySnapshot.docs[0]
         return userDoc;
     }
-
-      getCurrentUser(username).then((blah) => {
+      // fetch the current user, then save their information to a useState
+      getCurrentUser(username).then((doc) => {
         setCurrentUser({
-          id: blah.id,
-          email: blah.data().email,
-          followers: blah.data().followers,
-          name: blah.data().name,
-          password: blah.data().password,
-          posts: blah.data().posts,
-          username: blah.data().username,
-          about: blah.data().about,
-          hours: blah.data().hours,
+          id: doc.id,
+          email: doc.data().email,
+          followers: doc.data().followers,
+          name: doc.data().name,
+          password: doc.data().password,
+          posts: doc.data().posts,
+          username: doc.data().username,
+          about: doc.data().about,
+          hours: doc.data().hours,
         });
-        setPfp(generateGravatarUrl(blah.data().email));
+
+        //set the users' profile picture state to their gravatar
+        setPfp(generateGravatarUrl(doc.data().email));
       });
+
+
     }, [username])
+
+
+  if(route.params?.post) {
+    let post = route.params.post;
+    return (
+      <DismissKeyboard>
+      <View>
+              <View style={styles.postContainer} key={post.id}>
+      
+
+
+      <View style={styles.postHeader}>
+      <Image source={{ uri: post.authorPfp }} style={styles.avatar} />
+        <Text style={styles.username}>{post.authorId}</Text>
+      </View>
+      <Text style={styles.content}>{post.content}</Text>
+
+      <View style={styles.interactionRow}>
+        <TouchableOpacity style={styles.interactionItem}>
+          <AntDesign name="hearto" size={24} color="black" />
+          <Text style={styles.interactionText}>{post.likes.length}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.interactionItem}>
+          <Feather name="message-circle" size={24} color="black" />
+          <Text style={styles.interactionText}>34</Text> 
+        </TouchableOpacity>
+      </View>
+      
+    </View>
+        <View style={styles.container}>
+          
+          <View>
+            <View style={styles.inputContainer}>
+              <Image
+                source={{uri: pfp || 'https://www.gravatar.com/a'}}
+                style={styles.profilePicture}
+              />
+              <TextInput style={styles.textInput} multiline={true} placeholder="What's on your mind?" onChange={(value) => setPostContent(value.nativeEvent.text)}/>
+              <TouchableOpacity style={styles.postBtn} onPress={async() => {
+                await createPost(currentUser!.id!, postContent);
+                navigation.navigate('Home');
+              }}>
+                <Text style={styles.postBtnText}>Reply</Text>
+              </TouchableOpacity>
     
+            </View>
+          </View>
+        </View>
+      </View>     
+      </DismissKeyboard> 
+  )    
+  }  
   return (
     <View style={styles.container}>
         
@@ -85,7 +152,7 @@ export default function PostCreator({username, navigation}: {username: string, n
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: '25%',
+        marginTop: '15%',
         marginLeft: '10%',
         marginRight: '10%',
         flex: 1,
@@ -120,5 +187,60 @@ const styles = StyleSheet.create({
         height: 60,
         borderRadius: 30,
         borderWidth: 1,
+      },
+      interactionRow: {
+        flexDirection: 'row',
+    
+        borderTopWidth: 0,
+        borderTopColor: '#ddd',
+        paddingTop: 8,
+        marginTop: 8,
+        marginLeft: '2%'
+      },
+      interactionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 16,
+      },
+      interactionText: {
+        marginLeft: 4, // spacing between icon and text
+        color: '#333',
+        fontSize: 14,
+      },
+      postContainer: {
+        padding: 16,
+        borderTopWidth: 1,
+        borderTopColor: '#ddd',
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+        marginTop: '30%'
+      },
+      postHeader: {
+        flexDirection: 'row',
+        marginBottom: 8,
+      },
+      username: {
+        fontWeight: 'bold',
+        marginRight: 8,
+        marginTop: '3%'
+      },
+      createdAt: {
+        color: '#888',
+        marginTop: '3%'
+      },
+      content: {
+        marginBottom: 8,
+      },
+      postImage: {
+        width: '100%',
+        height: 200,
+        resizeMode: 'cover',
+        borderRadius: 8,
+      },
+      avatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 8,
       },
 })

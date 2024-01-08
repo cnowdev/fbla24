@@ -5,6 +5,7 @@ export type Post = {
     content: string, 
     createdAt: Date,
     likes: string[],
+    replyingTo?: string,
 }
 
 
