@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react'
 
-import {SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard,} from 'react-native'
+import {SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, Image} from 'react-native'
 import { collection, query, where, getDocs} from "firebase/firestore"; 
 import {db} from './firebase'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {User, Post} from './types/types'
 import { useFocusEffect } from '@react-navigation/native';
+
 
 
 export default function LogIn({ navigation, showError}:{navigation: any, showError: any}) {
@@ -81,6 +82,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
       style={styles.keyboardContainer}>
         
         <View style={styles.bcontainer}>
+          <Image style={styles.logoimage} source={require('./assets/icon.png')} ></Image>
           <Text style={styles.logo}>InFBLA</Text>
         </View>
           <View style={styles.inputView}>
@@ -184,4 +186,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 20,
   },
+  logoimage: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
+    borderRadius: 5
+  }
 });
