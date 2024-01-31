@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, Text, TouchableOpacity, View, Alert, Image } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Alert, Image, ScrollView, ActivityIndicator, Share } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons'; 
 import { getDocs, query, collection, where, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
@@ -9,6 +9,7 @@ import { Post } from './types/types';
 export default function PostViewer({route, navigation, username} : {route: any, navigation: any, username: string}) {
 
     const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(false);
     const [currentUserID, setCurrentUserID] = useState<string | null>(null);
     const post = route.params.post;
 
@@ -25,6 +26,7 @@ export default function PostViewer({route, navigation, username} : {route: any, 
       }
 
     const getPostsFeed = async() => {
+        setLoading(true);
         console.log(post.id);
         const q = query(collection(db, 'posts'), where('replyingTo', '==', post.id));
         
@@ -46,8 +48,18 @@ export default function PostViewer({route, navigation, username} : {route: any, 
           }]);
         });
     
-    
-      }  
+        setLoading(false);
+      }
+      
+      const handleShare = async (post: Post) => {
+        try { 
+          const result = await Share.share({
+            message: (`Checkout this post on InFBLA!: \n\n ${post.authorId} said: ${post.content}`)
+          });
+        } catch (error: any) {
+            console.log(error.message);
+        }
+      }
 
         useEffect(() => {
             getPostsFeed();
@@ -68,7 +80,14 @@ export default function PostViewer({route, navigation, username} : {route: any, 
         const usePosts = posts.map((post: Post) => {
             return (
               <TouchableOpacity style={styles.replyContainer} key={post.id} onPress={() => {
-                navigation.navigate('Post Viewer', {post: post})
+                navigation.navigate('Post Viewer', {post: {
+                  id: post.id,
+                  authorId: post.authorId,
+                  authorPfp: post.authorPfp,
+                  content: post.content,
+                  likes: post.likes,
+                  replyingTo: post.replyingTo,
+                }})
                 setPosts([]);
               }}>
               
@@ -102,12 +121,23 @@ export default function PostViewer({route, navigation, username} : {route: any, 
                   <Text style={styles.interactionText}>{post.likes.length}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.interactionItem} onPress={() => {
-                  navigation.navigate('Post Creator', {
-                    post: post
-                  });
+                  navigation.navigate('Post Creator', {post: {
+                   id: post.id,
+                    authorId: post.authorId,
+                    authorPfp: post.authorPfp,
+                    content: post.content,
+                    likes: post.likes,
+                    replyingTo: post.replyingTo,
+                  }})
                 }}>
                   <Feather name="message-circle" size={24} color="black" />
                   <Text style={styles.interactionText}></Text> 
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.interactionItem} onPress={() => {
+                 handleShare(post);
+                }}>
+                  <Feather name="share" size={24} color="black" />
+                    <Text style={styles.interactionText}></Text> 
                 </TouchableOpacity>
               </View>
               
@@ -139,7 +169,12 @@ export default function PostViewer({route, navigation, username} : {route: any, 
       
             </View>
             <Text style={styles.bigboytext}>Replies:</Text>
-            {usePosts}
+            {loading? (<ActivityIndicator size="large" color="#5f9ea0" style={styles.loading} />) : (
+              <ScrollView>
+                {usePosts}
+              </ScrollView>
+            )}
+
         </View>
     </View>
   )
@@ -216,6 +251,11 @@ const styles = StyleSheet.create({
         marginLeft: 4, // spacing between icon and text
         color: '#333',
         fontSize: 14,
+      },
+      loading: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
       },
 
 });

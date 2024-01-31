@@ -13,6 +13,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
 
+
     useFocusEffect(
       React.useCallback(() => {
         showError('');
@@ -96,6 +97,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
               autoCapitalize="none"
               onSubmitEditing={function(this:any) { this.secondTextInput.focus(); }}
               blurOnSubmit={false}
+              
             />
           </View>
           <View style={styles.inputView}>
@@ -103,7 +105,7 @@ export default function LogIn({ navigation, showError}:{navigation: any, showErr
               style={styles.inputText}
               placeholder="Password"
               placeholderTextColor="#003f5c"
-              secureTextEntry
+              secureTextEntry={true}
               value={password}
               onChangeText={(text) => setPassword(text)}
               autoCorrect={false}

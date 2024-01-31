@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {View, Text, Button, TouchableOpacity, StyleSheet, Pressable, Image, ScrollView} from 'react-native'
+import {View, Text, Button, TouchableOpacity, StyleSheet, Pressable, Image, ScrollView, ActivityIndicator, Share} from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { User } from './types/types'
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -12,10 +12,12 @@ import { AntDesign } from '@expo/vector-icons';
 
 
 
+
 export default function Home({update, navigation, username}: {update: any, navigation: any, username: string}) {
   const [posts, setPosts] = useState<Post[]>([]);
   const isFocused = useIsFocused();
   const [currentUserID, setCurrentUserID] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   
 
   async function logout() {
@@ -41,6 +43,7 @@ export default function Home({update, navigation, username}: {update: any, navig
 
 
   const getPostsFeed = async() => {
+    setLoading(true);
     const q = query(collection(db, 'posts'));
 
     const querySnapshot = await getDocs(q);
@@ -58,12 +61,43 @@ export default function Home({update, navigation, username}: {update: any, navig
         likes: doc.data().likes,
         replyingTo: doc.data().replyingTo,
       }]);
+    
+      
     });
 
+    setLoading(false);
+  }
 
+
+  const handleLike = (post: Post) => {
+    if(post.likes.includes(currentUserID!)){
+      const index = post.likes.indexOf(currentUserID!);
+      post.likes.splice(index, 1);
+      setPosts([...posts]);
+      updateDoc(doc(db, 'posts', post.id!), {
+        likes: post.likes,
+      });
+    } else{
+      post.likes.push(currentUserID!);
+      setPosts([...posts]);
+      updateDoc(doc(db, 'posts', post.id!), {
+        likes: post.likes,
+      });
+    }
+  }
+
+  const handleShare = async (post: Post) => {
+    try { 
+      const result = await Share.share({
+        message: (`Checkout this post on InFBLA!: \n\n ${post.authorId} said: ${post.content}`)
+      });
+    } catch (error: any) {
+        console.log(error.message);
+    }
   }
 
   useEffect(() => {
+
     getPostsFeed();
     // function to information about the current user
     const getCurrentUser = async(username: string) => {
@@ -75,6 +109,8 @@ export default function Home({update, navigation, username}: {update: any, navig
     // fetch the current user, then save their information to a useState
     getCurrentUser(username).then((doc) => {
     setCurrentUserID(doc.id);
+    
+
       });
 
 
@@ -85,7 +121,14 @@ export default function Home({update, navigation, username}: {update: any, navig
     if(post.replyingTo) return;
     return (
       <TouchableOpacity style={styles.postContainer} key={post.id} onPress={() => {
-        navigation.navigate('Post Viewer', {post: post})
+        navigation.navigate('Post Viewer', {post: {
+          id: post.id,
+          authorId: post.authorId,
+          authorPfp: post.authorPfp,
+          content: post.content,
+          likes: post.likes,
+          replyingTo: post.replyingTo,
+        }})
       }}>
       
 
@@ -98,22 +141,7 @@ export default function Home({update, navigation, username}: {update: any, navig
       <Text style={styles.content}>{post.content}</Text>
 
       <View style={styles.interactionRow}>
-        <TouchableOpacity style={styles.interactionItem} onPress={() => {
-          if(post.likes.includes(currentUserID!)){
-            const index = post.likes.indexOf(currentUserID!);
-            post.likes.splice(index, 1);
-            setPosts([...posts]);
-            updateDoc(doc(db, 'posts', post.id!), {
-              likes: post.likes,
-            });
-          } else{
-            post.likes.push(currentUserID!);
-            setPosts([...posts]);
-            updateDoc(doc(db, 'posts', post.id!), {
-              likes: post.likes,
-            });
-          }
-        }}>
+        <TouchableOpacity style={styles.interactionItem} onPress={() => {handleLike(post)}}>
           {post.likes.includes(currentUserID!) ? <AntDesign name="heart" size={24} color="#fa2c8b" /> : <AntDesign name="hearto" size={24} color="black" />}
           <Text style={styles.interactionText}>{post.likes.length}</Text>
         </TouchableOpacity>
@@ -125,6 +153,12 @@ export default function Home({update, navigation, username}: {update: any, navig
           <Feather name="message-circle" size={24} color="black" />
           <Text style={styles.interactionText}></Text> 
         </TouchableOpacity>
+        <TouchableOpacity style={styles.interactionItem} onPress={() => {
+          handleShare(post);
+        }}>
+          <Feather name="share" size={24} color="black" />
+          <Text style={styles.interactionText}></Text> 
+        </TouchableOpacity>
       </View>
       
     </TouchableOpacity>
@@ -132,10 +166,14 @@ export default function Home({update, navigation, username}: {update: any, navig
   })
   return (
     <View style={styles.container}>
-    <ScrollView>
-    <Text style={styles.bigboytext}>Your Feed</Text>
-    {usePosts}
-    </ScrollView>
+
+    {loading? (<ActivityIndicator size="large" color="#5f9ea0" style={styles.loading} />) : (
+          <ScrollView>
+          <Text style={styles.bigboytext}>Your Feed</Text>
+          {usePosts}
+          </ScrollView>
+    )}
+
     <View style={styles.circleButtonContainer}>
     <Pressable style={styles.circleButton} onPress={() => navigation.navigate('Post Creator')}>
         <MaterialCommunityIcons name="pencil" size={32} color="white" />
@@ -245,5 +283,10 @@ const styles = StyleSheet.create({
     marginLeft: 4, // spacing between icon and text
     color: '#333',
     fontSize: 14,
+  },
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
