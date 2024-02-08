@@ -39,7 +39,7 @@ ___
 ## Build Instruction
 1. Clone the project using `git clone https://github.com/cnowdev/fbla24.git`
 2. Cd into the project directory `cd fbla24`
-3. Run `npn install`
+3. Run `npm install`
 4. Run `npx expo start`
 5. Scan the QR code with a phone or use the web module
 ___
@@ -64,7 +64,7 @@ Figma - https://www.figma.com/
 > Figma is a collaborative web application for interface design. We used Figma to make the wireframe for our project
 
 ## Libraries Used
-* @firebase/firestore - to communicate to firbase
+* @firebase/firestore - to communicate to firebase
 * @react-navigation/native - for the navigation
 * @react-native-async-storage/async-storage - for temporary local storage option
 
