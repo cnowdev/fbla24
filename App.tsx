@@ -9,6 +9,7 @@ import Profile from './Profile';
 import LogIn from './Login';
 import Signup from './Signup';
 import Search from './Search';
+import FAQPage from './FAQ';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import { Entypo } from '@expo/vector-icons';
@@ -56,6 +57,7 @@ export default function App() {
       <Tab.Screen name="Home" options={{headerShown: false, tabBarIcon: (props) => <Entypo name="home" size={24} color={props.focused? 'blue' : 'black'} />}} children={(props) => <Home update={update} username={isSignedIn} {...props}/> }/>
       <Tab.Screen name="Search" options={{tabBarIcon: (props) => <AntDesign name="search1" size={24} color={props.focused? 'blue' : 'black'} />}}children={(props) => <Search {...props} showError={showError} username={isSignedIn} />} />
       <Tab.Screen name="Profile" options={{tabBarIcon: (props) => <Ionicons name="person" size={24} color={props.focused? 'blue' : 'black'} />, headerLeft: (props) => <SimpleLineIcons style= {{marginLeft: '5%'}}name="logout" size={24} color="red" onPress={logoutPrompt}/>}} children={ () => <UserProfile showError={setError} username={isSignedIn}/> } />
+      <Tab.Screen name="FAQ" options={{tabBarIcon: (props) => <AntDesign name="questioncircleo" size={24} color={props.focused? 'blue' : 'black'} />}} children={ () => <FAQPage/> } />
       </Tab.Navigator>
     )
   }
