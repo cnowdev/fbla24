@@ -206,7 +206,7 @@ const MainTab = ({user, update}:{user:any, update: Function}) => {
 
       {about.length >= 300 && (<Text style = {styles.errorMsg}> About me must be under 300 characters.</Text>)}
       <View style={styles.aboutMe}>
-      <ScrollView ref={scrollViewRef} style={{flex: 1}}>
+      <ScrollView style={{flex: 1}}>
       <View style={{minWidth: '100%', alignContent: 'center', justifyContent: 'center', alignItems: 'center'}}>
       {!isEditing ? (
         <>

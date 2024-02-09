@@ -187,10 +187,11 @@ export default function Home({update, navigation, username}: {update: any, navig
 const styles = StyleSheet.create({
   bigboytext: {
     fontWeight: 'bold',
-    fontSize: 50,
+    fontSize: 40,
     color: '#5f9ea0',
     marginLeft: '5%',
-    marginBottom: '3%'
+    marginBottom: '3%',
+
   },
   container: {
     marginTop: '15%',
