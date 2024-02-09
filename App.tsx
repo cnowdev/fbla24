@@ -19,6 +19,10 @@ import PostCreator from './PostCreator';
 import { SimpleLineIcons } from '@expo/vector-icons'; 
 import PostViewer from './PostViewer';
 
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
+
 
 
 const Stack = createStackNavigator();
